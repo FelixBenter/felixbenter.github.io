@@ -1,5 +1,5 @@
 // Performance settings
-const NUM_AGENTS = 10000;
+const NUM_AGENTS = 1000;
 const SENSOR_RADIUS = 0.01;
 
 // Vis presets
@@ -46,6 +46,26 @@ const presets = [
     },
     {
         name: "Sin waves",
+        createAgents: function() {
+            agents = [];
+            for (let i = 0; i < NUM_AGENTS; i++) agents.push({
+                x: i/NUM_AGENTS,
+                y: 0.5,
+                rot: Math.sin(i) * Math.PI * 2
+            });
+            return agents;
+        },
+        color: [0.882, 0.209, 0.4, 1.0],
+        pointSize: 1.0,
+        turnSpeed: 0.5,
+        moveSpeed: 1.0 / 1080,
+        fadeSpeed: 1.0,
+        sensorOffsetDistance: 1.0,
+        leftSensorAngle: -2.0,
+        rightSensorAngle: 2.0,
+    },
+    {
+        name: "Mandelbrot",
         createAgents: function() {
             agents = [];
             for (let i = 0; i < NUM_AGENTS; i++) agents.push({

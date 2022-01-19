@@ -27,9 +27,7 @@ checking for edge of screen bounces and so on
                 ============FRAME END============
 
 NOTE:
-Potentially create a big vertex buffer with a coordinates to each pixel in agentTex.
-Then a vertex shader in renderAgent will run for each vertex and set gl_Position to the sampled x & y
-value at that pixel.
+Change agent texture to 2D? Might allow more than 16000 agents.
 */
 
 function init(presetIndex)
@@ -40,8 +38,10 @@ function init(presetIndex)
     config.agents = config.preset.createAgents();
     config.sensorRadius = SENSOR_RADIUS;
 
+
     const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
 
+    console.log(gl.getParameter(gl.MAX_TEXTURE_SIZE));
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);

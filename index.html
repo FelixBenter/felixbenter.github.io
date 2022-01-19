@@ -10,10 +10,23 @@
         <link href='css/site.css' rel='stylesheet' type='text/css'>
     </head>
     <body>
-        <canvas id="vis" width="1080" height="1080"></canvas>
+        <canvas id="vis" width="1024" height="1024"></canvas>
+        <select id="select-vis" onchange="changeInit(this)">
+        </select>
         <script>
+            const dropdown = document.getElementById('select-vis');
+            for (let i = 0; i < presets.length; i++) {
+                dropdown.innerHTML += "<option value=" + i + ">" + presets[i].name + "</option>";
+            }
+
             const canvas = document.getElementById('vis');
             init(0);
+
+            function changeInit(sel) {
+                const selection = parseInt(sel.value);
+                init(selection);
+            }
+            
         </script>
     </body>
 

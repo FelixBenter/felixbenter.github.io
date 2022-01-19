@@ -2,10 +2,7 @@ var g = {};
 const config = {
     agents: null,
     canvas: null,
-    pointSize: 2.0,
-    turnSpeed: 0.2,
-    moveSpeed: 0.002,
-    fadeSpeed: 0.05
+    preset: null,
 };
 
 /*
@@ -25,7 +22,8 @@ checking for edge of screen bounces and so on
   renderAgent → ↓ WRITE renderTex (write agents onto render buffer)
 
                 ↑ READ renderTex
-                ↓ WRITE renderTex_ (do post processing)
+                | WRITE renderTex_ (do post processing)
+                ↓ WRITE output buffer (show frame)
                 ============FRAME END============
 
 NOTE:
@@ -34,21 +32,16 @@ Then a vertex shader in renderAgent will run for each vertex and set gl_Position
 value at that pixel.
 */
 
-function init()
+function init(presetIndex)
 {
     const canvas = document.getElementById("vis");
     config.canvas = canvas;
-
-    // 16384 max texture size
-    
-    config.agents = [];
-    for (let i = 0; i < 4096; i++) config.agents.push({
-        x: 0.5,
-        y: 0.5,
-        rot: (Math.random() * (0.0 - 2*Math.PI) + 2*Math.PI).toFixed(4)
-    });
+    config.preset = presets[presetIndex];
+    config.agents = config.preset.createAgents();
+    config.sensorRadius = SENSOR_RADIUS;
 
     const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
+
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -87,12 +80,14 @@ function setupShaders(gl)
     uniform sampler2D renderTex;
     in vec2 v_texCoord;
 
-    const float moveSpeed = ` + config.moveSpeed.toFixed(4) + `;
-    const float turnSpeed = ` + config.turnSpeed.toFixed(4) + `;
+    const float moveSpeed = ` + config.preset.moveSpeed.toFixed(4) + `;
+    const float turnSpeed = ` + config.preset.turnSpeed.toFixed(4) + `;
     const float width = ` + config.canvas.width.toFixed(1) + `;
     const float height = ` + config.canvas.height.toFixed(1) + `;
-    const float sensorRadius = 0.02;
-    const float sensorOffsetDistance = 0.02;
+    const float sensorRadius = ` + config.sensorRadius.toFixed(4) + `;
+    const float sensorOffsetDistance = ` + config.preset.sensorOffsetDistance.toFixed(4) + `;
+    const float leftSensorAngle = ` + config.preset.leftSensorAngle.toFixed(2) + `;
+    const float rightSensorAngle = ` + config.preset.rightSensorAngle.toFixed(2) + `;
 
     out vec4 result;
 
@@ -144,14 +139,13 @@ function setupShaders(gl)
         {
             x = min(0.99, max(0.0, x));
             y = min(0.99, max(0.0, y));
-            //r += pseudoRandomNumber * 3.141;
+            //r += pseudoRandomNumber * 3.141 + 3.141;
             r += 3.141;
         }
-
         
         float forwardReading = sense(x, y, r, 0.0);
-        float leftReading = sense(x, y, r, 1.0);
-        float rightReading = sense(x, y, r, -1.0);
+        float leftReading = sense(x, y, r, leftSensorAngle);
+        float rightReading = sense(x, y, r, rightSensorAngle);
 
         if (forwardReading > leftReading && forwardReading > rightReading) r += 0.0;
         else if (forwardReading < leftReading && forwardReading < rightReading) r += (pseudoRandomNumber-0.5) * turnSpeed;
@@ -183,7 +177,7 @@ function setupShaders(gl)
         agent = texture(agentTex, vec2(r_agentCoord, 0.5));
 
         gl_Position = vec4(2.0 * x - 1.0, 2.0 * y - 1.0, 0.0, 1.0);
-        gl_PointSize = ` + config.pointSize.toFixed(2) + `;
+        gl_PointSize = ` + config.preset.pointSize.toFixed(2) + `;
     }`;
 
     const renderAgentFragSrc = `#version 300 es
@@ -197,7 +191,7 @@ function setupShaders(gl)
 
     void main(void)
     {
-        color = vec4(0.282, 0.909, 1.0, 1.0);
+        color = vec4(` + config.preset.color.toString() + `);
     }`;
 
     const postProcessingVertSrc = `#version 300 es
@@ -215,11 +209,9 @@ function setupShaders(gl)
     precision mediump float;
     precision mediump sampler2D;
 
-    const float fadeSpeed = ` + config.fadeSpeed.toFixed(4) + ` * 0.001;
+    const float fadeSpeed = ` + config.preset.fadeSpeed.toFixed(7) + ` * 0.001;
     const float width = ` + config.canvas.width.toFixed(1) + `;
     const float height = ` + config.canvas.height.toFixed(1) + `;
-    const float weight = 4.0;
-    
 
     in vec2 v_texCoord;
     uniform sampler2D renderTex;

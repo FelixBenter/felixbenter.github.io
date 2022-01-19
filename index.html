@@ -5,14 +5,18 @@
         <meta charset="utf-8">
 
         <script src="scripts/vis.js" type="text/javascript"></script>
-        <script src="https://greggman.github.io/webgl-helpers/webgl-check-framebuffer-feedback.js"></script>
+        <script src="scripts/presets.js" type="text/javascript"></script>
 
         <link href='css/site.css' rel='stylesheet' type='text/css'>
     </head>
-
-    
-    <body onload="init()">
-        <canvas id="vis" width="2560" height="1080"></canvas>
+    <body>
+        <canvas id="vis" width="1080" height="1080"></canvas>
+        <script>
+            const canvas = document.getElementById('vis');
+            init(0);
+        </script>
     </body>
+
+
 </html>
 

@@ -38,10 +38,8 @@ function init(presetIndex)
     config.agents = config.preset.createAgents();
     config.sensorRadius = SENSOR_RADIUS;
 
-
     const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
 
-    console.log(gl.getParameter(gl.MAX_TEXTURE_SIZE));
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -61,13 +59,14 @@ function setupShaders(gl)
     // pasthrough shader
     const moveAgentVertSrc = `#version 300 es
     precision mediump float;
-    in vec2 m_position;
+
+    in vec4 m_position;
     out vec2 v_texCoord;
 
     void main(void)
     {
-        gl_Position = vec4(m_position, 0.0, 1.0);
-        v_texCoord = m_position.xy * 0.5 + 0.5; // range to [-1, 1]
+        gl_Position = vec4(m_position.xy, 0.0, 1.0);
+        v_texCoord = m_position.zw;
     }`;
 
     // Calculates new x, y and r values for the agent state texture
@@ -79,6 +78,7 @@ function setupShaders(gl)
     uniform sampler2D agentTex;
     uniform sampler2D renderTex;
     in vec2 v_texCoord;
+
 
     const float moveSpeed = ` + config.preset.moveSpeed.toFixed(4) + `;
     const float turnSpeed = ` + config.preset.turnSpeed.toFixed(4) + `;
@@ -137,10 +137,15 @@ function setupShaders(gl)
         // check boundaries and reflect angle if hit
         if (x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0)
         {
-            x = min(0.99, max(0.0, x));
-            y = min(0.99, max(0.0, y));
+            //x = min(0.99, max(0.0, x));
+            //y = min(0.99, max(0.0, y));
             //r += pseudoRandomNumber * 3.141 + 3.141;
-            r += 3.141;
+            //r += 3.141;
+
+            if (x < 0.0) x = 0.99;
+            if (x > 1.0) x = 0.01;
+            if (y < 0.0) y = 0.99;
+            if (y > 1.0) y = 0.01;
         }
         
         float forwardReading = sense(x, y, r, 0.0);
@@ -162,7 +167,7 @@ function setupShaders(gl)
     precision mediump float;
     
     in vec2 r_position;
-    in float r_agentCoord;
+    in vec2 r_agentCoord;
     
     precision mediump sampler2D;
     uniform sampler2D agentTex;
@@ -172,9 +177,10 @@ function setupShaders(gl)
     void main(void)
     {
         // get the r & g (x & y positions) value of pixels in agentTex
-        float x = texture(agentTex, vec2(r_agentCoord, 0.5)).r;
-        float y = texture(agentTex, vec2(r_agentCoord, 0.5)).g;
-        agent = texture(agentTex, vec2(r_agentCoord, 0.5));
+        agent = texture(agentTex, r_agentCoord);
+        float x = agent.x;
+        float y = agent.y;
+        
 
         gl_Position = vec4(2.0 * x - 1.0, 2.0 * y - 1.0, 0.0, 1.0);
         gl_PointSize = ` + config.preset.pointSize.toFixed(2) + `;
@@ -196,13 +202,13 @@ function setupShaders(gl)
 
     const postProcessingVertSrc = `#version 300 es
     precision mediump float;
-    in vec2 m_position;
+    in vec4 m_position;
     out vec2 v_texCoord;
 
     void main(void)
     {
-        gl_Position = vec4(m_position, 0.0, 1.0);
-        v_texCoord = m_position.xy * 0.5 + 0.5;
+        gl_Position = vec4(m_position.xy, 0.0, 1.0);
+        v_texCoord = m_position.pq;
     }`;
 
     const postProcessingFragSrc = `#version 300 es
@@ -310,41 +316,45 @@ function setupAgentControl(gl, config, shaders)
     var r_agentCoord = gl.getAttribLocation(shaders.renderAgentProg, 'r_agentCoord');
     var m_position_postprocess = gl.getAttribLocation(shaders.postProcessingProg, 'm_position');
 
-    // Vertex buffer for rectangle across entire canvas
+    // Vertex + coordinate buffer for rectangle across entire canvas
     var positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
-
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 0,0,  1,-1, 1,0, -1,1, 0,1,  -1,1, 0,1,  1,-1, 1,0,  1,1, 1,1]), gl.STATIC_DRAW);
     // Give moveAgent and postProcessing access to the vertex buffer
     gl.enableVertexAttribArray(m_position);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(m_position, 2, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribPointer(m_position_postprocess, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(m_position, 4, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(m_position_postprocess, 4, gl.FLOAT, false, 0, 0);
 
     // Vertex buffer with locations for each agent pixel in agentTex
     var lookupBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, lookupBuffer);
-    let lookupBufferData = []; // coordinates for the centre of each pixel in agentTex
-    for (let i = 0; i < config.agents.length*2; i+=2) lookupBufferData.push((i+1)/(2*config.agents.length));
+    // coordinates for the centre of each pixel in agentTex
+    let lookupBufferData = []; 
+    for (let i = 0; i < textures.agentTextureLength; i++)
+    {
+        for (let j = 0; j < textures.agentTextureLength; j++)
+        {
+            // push x and y coordinates for centre of each pixel
+            lookupBufferData.push((j + 0.5)/textures.agentTextureLength);
+            lookupBufferData.push((i + 0.5)/textures.agentTextureLength);
+        }
+    }
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lookupBufferData), gl.STATIC_DRAW);
-
     // Give renderAgent this buffer
     gl.enableVertexAttribArray(r_agentCoord);
     gl.bindBuffer(gl.ARRAY_BUFFER, lookupBuffer);
-    gl.vertexAttribPointer(r_agentCoord, 1, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(r_agentCoord, 2, gl.FLOAT, false, 0, 0);
 
     // create framebuffer for agent info output
     const agentFramebuffer = gl.createFramebuffer();
     const postProcessingFrameBuffer = gl.createFramebuffer();
 
     var ping = true;
-
     function tick() {
         render(ping, gl, shaders, agentFramebuffer, postProcessingFrameBuffer, textures);
         ping = !ping;
-        window.requestAnimationFrame(tick);
+        if (doRender) window.requestAnimationFrame(tick);
     }
-    
     window.requestAnimationFrame(tick);
 }
 
@@ -364,6 +374,8 @@ Creates 4 textures:
     to sense trails surrounding the agent, and use that to steer it.*/
 function createTextures(gl, agentData)
 {
+    const agentTextureLength = Math.ceil(Math.sqrt(config.agents.length));
+
     const agentTex = gl.createTexture();
     //gl.activeTexture(gl.TEXTURE0 + 0);
     gl.bindTexture(gl.TEXTURE_2D, agentTex);
@@ -373,9 +385,8 @@ function createTextures(gl, agentData)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, config.agents.length, 1, 0, gl.RGBA, gl.FLOAT, agentData);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, agentTextureLength, agentTextureLength, 0, gl.RGBA, gl.FLOAT, agentData);
     gl.bindTexture(gl.TEXTURE_2D, null);
-
     // swap texture for every 2nd frame of computation
     const agentTex_ = gl.createTexture();
     //gl.activeTexture(gl.TEXTURE0 + 1);
@@ -386,7 +397,7 @@ function createTextures(gl, agentData)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, config.agents.length, 1, 0, gl.RGBA, gl.FLOAT, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, agentTextureLength, agentTextureLength, 0, gl.RGBA, gl.FLOAT, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
     const renderTex = gl.createTexture();
@@ -412,6 +423,7 @@ function createTextures(gl, agentData)
     return {
         agentTexture: agentTex,
         agentTextureSwap: agentTex_,
+        agentTextureLength: agentTextureLength,
         renderTexture: renderTex,
         renderTextureSwap: renderTex_
     };
@@ -429,19 +441,17 @@ function render(ping, gl, shaders, agentFramebuffer, postProcessingFrameBuffer, 
     gl.uniform1i(shaders.moveAgentTextures[0], 0); // agent texture UNIT 0 and 1
     gl.uniform1i(shaders.moveAgentTextures[1], 2); // render texture UNIT 2
 
-    gl.viewport(0, 0, config.agents.length, 1); 
+    gl.viewport(0, 0, textures.agentTextureLength, textures.agentTextureLength); 
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.agentTextureSwap : textures.agentTexture, 0);
     // set UNIT 0 to be agentTexture or agentTextureSwap
     gl.activeTexture(gl.TEXTURE0 + 0);
     gl.bindTexture(gl.TEXTURE_2D, (ping) ? textures.agentTexture : textures.agentTextureSwap);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 
     gl.viewport(0, 0, config.canvas.width, config.canvas.height);
-
     // Render to the render-texture swap
     gl.useProgram(shaders.renderAgentProg);
     gl.bindFramebuffer(gl.FRAMEBUFFER, postProcessingFrameBuffer);

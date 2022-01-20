@@ -3,28 +3,36 @@
     <head>
         <title>Home</title>
         <meta charset="utf-8">
-
-        <script src="scripts/vis.js" type="text/javascript"></script>
         <script src="scripts/presets.js" type="text/javascript"></script>
+        <script src="scripts/vis.js" type="text/javascript"></script>
+        <script src="https://greggman.github.io/webgl-helpers/webgl-check-framebuffer-feedback.js"></script>
+        
 
         <link href='css/site.css' rel='stylesheet' type='text/css'>
     </head>
     <body>
-        <canvas id="vis" width="1024" height="1024"></canvas>
+        <canvas id="vis" width="1300" height="1300"></canvas>
         <select id="select-vis" onchange="changeInit(this)">
         </select>
+        <button id="pause-button" onclick="toggleRender()">Pause</button>
         <script>
             const dropdown = document.getElementById('select-vis');
             for (let i = 0; i < presets.length; i++) {
                 dropdown.innerHTML += "<option value=" + i + ">" + presets[i].name + "</option>";
             }
 
+            doRender = true;
             const canvas = document.getElementById('vis');
-            init(0);
+            init(3);
 
             function changeInit(sel) {
                 const selection = parseInt(sel.value);
                 init(selection);
+            }
+
+            function toggleRender() {
+                doRender = !doRender;
+                if (doRender) window.requestAnimationFrame(tick);
             }
             
         </script>

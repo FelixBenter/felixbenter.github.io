@@ -1,6 +1,7 @@
 var g = {};
 const config = {
     agents: null,
+    agentColors: null,
     canvas: null,
     preset: null,
 };
@@ -38,7 +39,9 @@ function init(presetIndex)
     const canvas = document.getElementById("vis");
     config.canvas = canvas;
     config.preset = presets[presetIndex];
-    config.agents = config.preset.createAgents();
+    let agentData = config.preset.createAgents();
+    config.agents = agentData.agents;
+    config.agentColors = agentData.colors;
     config.sensorRadius = SENSOR_RADIUS;
 
     const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
@@ -156,10 +159,10 @@ function setupShaders(gl)
         float leftReading = sense(x, y, r, leftSensorAngle);
         float rightReading = sense(x, y, r, rightSensorAngle);
 
-        if (forwardReading > leftReading && forwardReading > rightReading) r += pseudoRandomNumber * 0.2;
-        else if (forwardReading < leftReading && forwardReading < rightReading) r += (pseudoRandomNumber-0.5) * turnSpeed;
-        else if (rightReading > leftReading) r -= pseudoRandomNumber * turnSpeed;
-        else if (rightReading < leftReading) r += pseudoRandomNumber * turnSpeed;
+        if (forwardReading > leftReading && forwardReading > rightReading) r += 0.0; // no change
+        else if (forwardReading < leftReading && forwardReading < rightReading) r += (pseudoRandomNumber-0.5) * turnSpeed; // turn randomly
+        else if (rightReading > forwardReading && forwardReading > leftReading) r -= pseudoRandomNumber * turnSpeed; // turn left
+        else if (leftReading > forwardReading && forwardReading > rightReading) r += pseudoRandomNumber * turnSpeed; // turn right
 
         result = vec4(vec3(x, y, r), 1.0);
     }`;
@@ -314,9 +317,7 @@ function setupAgentControl(gl, config, shaders)
         agentData.push(config.agents[i].rot);
         agentData.push(0.0);
     }
-    agentColorData = config.preset.getColor();
-
-    TEXTURES = createTextures(gl, new Float32Array(agentData), new Uint8Array(agentColorData));
+    TEXTURES = createTextures(gl, new Float32Array(agentData), new Uint8Array(config.agentColors));
 
     var m_position = gl.getAttribLocation(shaders.moveAgentProg, 'm_position');
 
@@ -434,7 +435,7 @@ function createTextures(gl, agentData, agentColorData)
 }
 
 function render(ping, gl, shaders, frameBuffers, textures)
-{   
+{
     /*
     Ping-pong buffer: Alternate between agentTex & agentTexSwap,
     and alternate between renderTexture and renderTextureSwap

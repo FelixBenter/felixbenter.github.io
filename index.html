@@ -5,13 +5,12 @@
         <meta charset="utf-8">
         <script src="scripts/presets.js" type="text/javascript"></script>
         <script src="scripts/vis.js" type="text/javascript"></script>
-        <script src="https://greggman.github.io/webgl-helpers/webgl-check-framebuffer-feedback.js"></script>
         
 
         <link href='css/site.css' rel='stylesheet' type='text/css'>
     </head>
     <body>
-        <canvas id="vis" width="720" height="720"></canvas>
+        <canvas id="vis" width="1080" height="1080"></canvas>
         <select id="select-vis" onchange="changeInit(this)">
         </select>
         <button id="pause-button" onclick="toggleRender()">Pause</button>
@@ -24,7 +23,7 @@
 
             doRender = true;
             const canvas = document.getElementById('vis');
-            init(0);
+            init(1);
 
             function changeInit(sel) {
                 const selection = parseInt(sel.value);

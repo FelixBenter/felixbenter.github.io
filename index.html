@@ -11,7 +11,7 @@
         <link href='css/site.css' rel='stylesheet' type='text/css'>
     </head>
     <body>
-        <canvas id="vis" width="1300" height="1300"></canvas>
+        <canvas id="vis" width="1080" height="1080"></canvas>
         <select id="select-vis" onchange="changeInit(this)">
         </select>
         <button id="pause-button" onclick="toggleRender()">Pause</button>
@@ -23,10 +23,11 @@
 
             doRender = true;
             const canvas = document.getElementById('vis');
-            init(3);
+            init(0);
 
             function changeInit(sel) {
                 const selection = parseInt(sel.value);
+                shutdown();
                 init(selection);
             }
 

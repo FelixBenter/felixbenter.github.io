@@ -11,10 +11,11 @@
         <link href='css/site.css' rel='stylesheet' type='text/css'>
     </head>
     <body>
-        <canvas id="vis" width="1080" height="1080"></canvas>
+        <canvas id="vis" width="720" height="720"></canvas>
         <select id="select-vis" onchange="changeInit(this)">
         </select>
         <button id="pause-button" onclick="toggleRender()">Pause</button>
+        <span id="fps"></span>
         <script>
             const dropdown = document.getElementById('select-vis');
             for (let i = 0; i < presets.length; i++) {

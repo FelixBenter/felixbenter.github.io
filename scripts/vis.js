@@ -45,6 +45,15 @@ function init(presetIndex)
     config.sensorRadius = SENSOR_RADIUS;
 
     const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
+
+    console.log(gl);
+    if (!gl)
+    {
+        gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params);
+        console.log("got gl:");
+        console.log(gl);
+    }
+
     GL_CONTEXT = gl;
 
     gl.viewport(0, 0, canvas.width, canvas.height);

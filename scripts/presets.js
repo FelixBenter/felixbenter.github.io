@@ -1,5 +1,5 @@
 // Performance settings
-const NUM_AGENTS = 2**(2*9);
+const NUM_AGENTS = 2**(2*7);
 const SENSOR_RADIUS = 3.0; // in pixels
 console.log("NUMBER OF AGENTS: " + NUM_AGENTS);
 

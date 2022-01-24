@@ -81,8 +81,9 @@ function setupShaders(gl)
     precision mediump float;
     precision mediump int;
     precision mediump sampler2D;
+    precision mediump usampler2D;
 
-    uniform sampler2D agentTex;
+    uniform usampler2D agentTex;
     uniform sampler2D renderTex;
     in vec2 v_texCoord;
 
@@ -95,7 +96,7 @@ function setupShaders(gl)
     const float leftSensorAngle = ` + config.preset.leftSensorAngle.toFixed(2) + `;
     const float rightSensorAngle = ` + config.preset.rightSensorAngle.toFixed(2) + `;
 
-    out vec4 result;
+    out uvec4 result;
 
     uint hash(uint x);
     uint hash(uint x)
@@ -132,10 +133,10 @@ function setupShaders(gl)
         uint pixelIndex = uint((gl_FragCoord.y * width) + (gl_FragCoord.x));
         float pseudoRandomNumber = float(hash(pixelIndex)) / 4294967295.0; // normalise
 
-        vec4 agent = texture(agentTex, v_texCoord);
-        float x = agent.x;
-        float y = agent.y;
-        float r = agent.z;
+        uvec4 agent = texture(agentTex, v_texCoord);
+        float x = uintBitsToFloat(agent.x);
+        float y = uintBitsToFloat(agent.y);
+        float r = uintBitsToFloat(agent.z);
 
         // move agent along current path
         x += cos(r) * moveSpeed;
@@ -164,7 +165,12 @@ function setupShaders(gl)
         else if (rightReading > forwardReading && forwardReading > leftReading) r -= pseudoRandomNumber * turnSpeed; // turn left
         else if (leftReading > forwardReading && forwardReading > rightReading) r += pseudoRandomNumber * turnSpeed; // turn right
 
-        result = vec4(vec3(x, y, r), 1.0);
+
+        uint x_ = floatBitsToUint(x);
+        uint y_ = floatBitsToUint(y);
+        uint r_ = floatBitsToUint(r);
+
+        result = uvec4(uvec3(x_, y_, r_), 1);
     }`;
 
     // Runs for each vertex defined over a pixel in the agent state texture
@@ -177,20 +183,22 @@ function setupShaders(gl)
     in vec2 r_agentCoord;
     
     precision mediump sampler2D;
-    uniform sampler2D agentTex;
+    precision mediump usampler2D;
+
+    uniform usampler2D agentTex;
     uniform sampler2D agentCol;
     
-    out vec4 agent;
+    //out uvec4 agent;
     out vec4 col;
 
     void main(void)
     {
         // get the r & g (x & y positions) value of pixels in agentTex
-        agent = texture(agentTex, r_agentCoord);
+        uvec4 agent = texture(agentTex, r_agentCoord);
         col = texture(agentCol, r_agentCoord);
 
-        float x = agent.x;
-        float y = agent.y;
+        float x = uintBitsToFloat(agent.x);
+        float y = uintBitsToFloat(agent.y);
         
 
         gl_Position = vec4(2.0 * x - 1.0, 2.0 * y - 1.0, 0.0, 1.0);
@@ -202,7 +210,7 @@ function setupShaders(gl)
     precision mediump int;
     precision mediump sampler2D;
 
-    in vec4 agent;
+    //in uvec4 agent;
     in vec4 col;
 
     out vec4 color;
@@ -414,9 +422,11 @@ function createTextures(gl, agentData, agentColorData)
 {
     const agentTextureLength = Math.ceil(Math.sqrt(config.agents.length));
 
-    const agentTex = createTexture(gl, gl.RGBA32F, agentTextureLength, agentTextureLength, gl.RGBA, gl.FLOAT, agentData);
+    agentDataUInt32 = new Uint32Array(agentData.buffer);
+
+    const agentTex = createTexture(gl, gl.RGBA32UI, agentTextureLength, agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, agentDataUInt32);
     // swap texture for every 2nd frame of computation
-    const agentTex_ = createTexture(gl, gl.RGBA32F, agentTextureLength, agentTextureLength, gl.RGBA, gl.FLOAT, null);
+    const agentTex_ = createTexture(gl, gl.RGBA32UI, agentTextureLength, agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, null);
 
     const agentColor = createTexture(gl, gl.RGBA, agentTextureLength, agentTextureLength, gl.RGBA, gl.UNSIGNED_BYTE, agentColorData);
 

@@ -473,6 +473,13 @@ function render(ping, gl, shaders, frameBuffers, textures)
     gl.bindTexture(gl.TEXTURE_2D, textures.renderTexture);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    var pixels = new Uint32Array(textures.agentTextureLength * textures.agentTextureLength * 16);
+    gl.readPixels(0, 0, textures.agentTextureLength, textures.agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
+    console.log(pixels[0]);
+
+
+
     // --------------------------------------
 
     // ------- AGENT RENDERING -------

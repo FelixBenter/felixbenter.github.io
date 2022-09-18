@@ -2,17 +2,17 @@
   <q-page class="row">
     <div class="q-gutter-y-lg">
       <div v-for="portfolioItem in portfolioItems" :key="portfolioItem.title">
-        <q-card
-          class="bg-primary"
-          style="height: 400px"
-          :id="portfolioItem.title"
-        >
-          <q-card-section horizontal class="full-height">
+        <q-card class="bg-primary" :id="portfolioItem.title">
+          <q-card-section
+            :horizontal="$q.screen.width > $q.screen.height"
+            class="full-height q-pa-none"
+          >
             <q-carousel
               v-model="portfolioItem.slide"
               arrows
               class="col-6"
               animated
+              style="min-height: 400px"
             >
               <q-carousel-slide
                 v-for="(img, i) in portfolioItem.imgs"
@@ -23,26 +23,32 @@
             </q-carousel>
 
             <q-card-section>
-              <div class="no-wrap items-center">
-                <div class="text-h4">{{ portfolioItem.title }}</div>
-              </div>
-              <div class="text-subtitle1 text-grey">
-                {{ portfolioItem.subtitle }}
-              </div>
-              <div class="text-body1">
-                {{ portfolioItem.description }}
-              </div>
+              <q-card-section>
+                <div class="no-wrap items-center">
+                  <div class="text-h4">{{ portfolioItem.title }}</div>
+                </div>
+                <div class="text-subtitle1 text-grey">
+                  {{ portfolioItem.subtitle }}
+                </div>
+                <div class="q-pt-none">
+                  {{ portfolioItem.description }}
+                </div>
+              </q-card-section>
 
-              <q-card-actions style="position: absolute; bottom: 0">
-                <q-btn
-                  color="secondary"
-                  v-for="action in portfolioItem.actions"
-                  :key="action.url"
-                  :label="action.title"
-                  :href="action.url"
-                  target="_blank"
-                ></q-btn>
-              </q-card-actions>
+              <q-separator />
+
+              <q-card-section>
+                <q-card-actions>
+                  <q-btn
+                    v-for="action in portfolioItem.actions"
+                    flat
+                    :key="action.url"
+                    :label="action.title"
+                    :href="action.url"
+                    target="_blank"
+                  ></q-btn>
+                </q-card-actions>
+              </q-card-section>
             </q-card-section>
           </q-card-section>
         </q-card>
@@ -68,7 +74,6 @@ export default defineComponent({
       setVerticalScrollPosition(target, offset, duration);
     },
   },
-
   data() {
     return {
       portfolioItems: [

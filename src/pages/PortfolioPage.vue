@@ -10,8 +10,13 @@
             <q-carousel
               v-model="portfolioItem.slide"
               arrows
-              class="col-6"
+              swipeable
               animated
+              transition-prev="slide-right"
+              transition-next="slide-left"
+              control-color="secondary"
+              control-type="push"
+              class="col-6"
               style="min-height: 400px"
             >
               <q-carousel-slide
@@ -42,10 +47,9 @@
                   <q-btn
                     v-for="action in portfolioItem.actions"
                     flat
-                    :key="action.url"
+                    :key="action.title"
                     :label="action.title"
-                    :href="action.url"
-                    target="_blank"
+                    v-on:click="action.click"
                   ></q-btn>
                 </q-card-actions>
               </q-card-section>
@@ -54,11 +58,36 @@
         </q-card>
       </div>
     </div>
+
+    <q-dialog v-model="showModal" full-width full-height>
+      <q-card class="bg-black">
+        <q-card-actions align="right">
+          <q-btn
+            square
+            color="primary"
+            icon="close"
+            @click="
+              () => {
+                routeComponent = null;
+                showModal = false;
+              }
+            "
+          />
+        </q-card-actions>
+        <q-card-section>
+          <component
+            v-if="routeComponent !== null"
+            :is="routeComponent"
+            :key="routeComponent"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, shallowRef, defineAsyncComponent } from "vue";
 import { scroll } from "quasar";
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
 export default defineComponent({
@@ -76,6 +105,8 @@ export default defineComponent({
   },
   data() {
     return {
+      routeComponent: null,
+      showModal: false,
       portfolioItems: [
         {
           title: "Blender DCX Importer",
@@ -94,7 +125,12 @@ export default defineComponent({
           actions: [
             {
               title: "View source on Github",
-              url: "https://github.com/FelixBenter/FromSoftware-Blender-Importer",
+              click: () => {
+                window.open(
+                  "https://github.com/FelixBenter/FromSoftware-Blender-Importer",
+                  "_blank"
+                );
+              },
             },
           ],
           slide: 0,
@@ -120,7 +156,16 @@ export default defineComponent({
           actions: [
             {
               title: "View demo",
-              url: "",
+              click: () => {
+                this.routeComponent = shallowRef(
+                  defineAsyncComponent(() =>
+                    import(
+                      `../components/background_visualiser/BackgroundVisualiser.vue`
+                    )
+                  )
+                );
+                this.showModal = true;
+              },
             },
           ],
           slide: 0,

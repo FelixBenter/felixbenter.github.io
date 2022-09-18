@@ -1,20 +1,15 @@
-const SENSOR_RADIUS = 3.0; // in pixels
+const SENSOR_RADIUS = 2.0; // in pixels
 const TARGET_FPS = 30;
 
 var g = {};
 const config = {
-    agents: null,
-    agentColors: null,
-    canvas: null,
-    preset: null,
+  agents: null,
+  agentColors: null,
+  canvas: null,
+  preset: null,
 };
 
-const userState = {
-    mouseDown: false,
-    mousePos: [-1.0, -1.0],
-    pMousePosition: null,
-
-}
+const userState = {};
 
 var GL_CONTEXT = null;
 var SHADERS = null;
@@ -45,62 +40,51 @@ checking for edge of screen bounces and so on
                 ============FRAME END============
 */
 
-export default function init(preset)
-{
-    const canvas = document.getElementById("vis");
-    FPS_ELEM = document.getElementById("fps");
-    config.canvas = canvas;
-    config.preset = preset;
-    let agentData = config.preset.createAgents();
-    config.agents = agentData.agents;
-    config.agentColors = agentData.colors;
-    config.sensorRadius = SENSOR_RADIUS;
+export default function init(preset) {
+  const canvas = document.getElementById("vis");
+  FPS_ELEM = document.getElementById("fps");
+  config.canvas = canvas;
+  config.preset = preset;
+  let agentData = config.preset.createAgents();
+  config.agents = agentData.agents;
+  config.agentColors = agentData.colors;
+  config.sensorRadius = SENSOR_RADIUS;
 
-    const gl = canvas.getContext("webgl2", {
-        preserveDrawingBuffer: true,
-        premultipliedAlpha: false,
-    });
-    if (!gl)
-    {
-        gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params);
-    }
+  const gl = canvas.getContext("webgl2", {
+    preserveDrawingBuffer: true,
+    premultipliedAlpha: false,
+  });
+  if (!gl) {
+    gl =
+      canvas.getContext("webgl", params) ||
+      canvas.getContext("experimental-webgl", params);
+  }
 
-    GL_CONTEXT = gl;
+  GL_CONTEXT = gl;
 
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    var ext = gl.getExtension("EXT_color_buffer_float");
-    if (!ext) {
-        alert("EXT_color_buffer_float failed to load");
+  var ext = gl.getExtension("EXT_color_buffer_float");
+  if (!ext) {
+    alert("EXT_color_buffer_float failed to load");
     return;
-    }
+  }
 
-    // Setup the user input functions
-    config.canvas.addEventListener('mousedown', function(e) {userState.mouseDown = true;});
-    config.canvas.addEventListener('mouseup', function(e) {userState.mouseDown = false;});
-    config.canvas.addEventListener('mousemove', function(e) {
-        if (userState.mouseDown) userState.mousePos = [e.pageX / config.canvas.width, 1.0 - e.pageY / config.canvas.height];
-        else userState.mousePos = [-5.0, -5.0];
-    })
-
-
-    SHADERS = setupShaders(gl);
-    setupAgentControl(gl, config, SHADERS);
+  SHADERS = setupShaders(gl);
+  setupAgentControl(gl, config, SHADERS);
 }
 
-function setupShaders(gl)
-{
-    // pasthrough shader
-    const moveAgentVertSrc = `#version 300 es
+function setupShaders(gl) {
+  // pasthrough shader
+  const moveAgentVertSrc = `#version 300 es
     precision mediump float;
 
     in vec4 m_position;
-    in vec2 m_mousePosition;
 
     out vec2 v_texCoord;
 
@@ -110,8 +94,9 @@ function setupShaders(gl)
         v_texCoord = m_position.zw;
     }`;
 
-    // Calculates new x, y and r values for the agent state texture
-    const moveAgentFragSrc = `#version 300 es
+  // Calculates new x, y and r values for the agent state texture
+  const moveAgentFragSrc =
+    `#version 300 es
     precision mediump float;
     precision mediump int;
     precision mediump sampler2D;
@@ -119,19 +104,33 @@ function setupShaders(gl)
 
     uniform usampler2D agentTex; // agent positions
     uniform sampler2D renderTex;
-    uniform vec2 v_mousePosition;
     in vec2 v_texCoord;
 
     const float PI = 3.141;
-    const float maxSpeed = ` + (config.preset.maxSpeed/config.canvas.width).toFixed(4) + `;
-    const float turnSpeed = ` + config.preset.turnSpeed.toFixed(4) + `;
-    const float width = ` + config.canvas.width.toFixed(1) + `;
-    const float height = ` + config.canvas.height.toFixed(1) + `;
-    const float sensorRadius = ` + (config.sensorRadius/config.canvas.width).toFixed(4) + `;
-    const float sensorOffsetDistance = ` + (config.preset.sensorOffsetDistance/config.canvas.width).toFixed(4) + `;
-    const float leftSensorAngle = ` + config.preset.leftSensorAngle.toFixed(2) + `;
-    const float rightSensorAngle = ` + config.preset.rightSensorAngle.toFixed(2) + `;
-    const float squareMouseRadius = 0.005;
+    const float maxSpeed = ` +
+    (config.preset.maxSpeed / config.canvas.width).toFixed(4) +
+    `;
+    const float turnSpeed = ` +
+    config.preset.turnSpeed.toFixed(4) +
+    `;
+    const float width = ` +
+    config.canvas.width.toFixed(1) +
+    `;
+    const float height = ` +
+    config.canvas.height.toFixed(1) +
+    `;
+    const float sensorRadius = ` +
+    (config.sensorRadius / config.canvas.width).toFixed(4) +
+    `;
+    const float sensorOffsetDistance = ` +
+    (config.preset.sensorOffsetDistance / config.canvas.width).toFixed(4) +
+    `;
+    const float leftSensorAngle = ` +
+    config.preset.leftSensorAngle.toFixed(2) +
+    `;
+    const float rightSensorAngle = ` +
+    config.preset.rightSensorAngle.toFixed(2) +
+    `;
     const float randomWeight = 0.05;
 
     const float aspectRatio = width/height;
@@ -185,7 +184,7 @@ function setupShaders(gl)
         x += cos(r) * v * maxSpeed * aspectRatioInv;
         y += sin(r) * v * maxSpeed;
 
-        // check boundaries and reflect angle if hit, or if near mouse
+        // check boundaries and reflect angle if hit
         if ( x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0 )
         {
             /*
@@ -224,16 +223,6 @@ function setupShaders(gl)
             r += turnSpeed + turnSpeed * (pseudoRandomWeight-0.5); // turn right
         }
 
-
-        // If within mouse range then set rotation directly away from mouse
-        float squareDistance = (x - v_mousePosition.x)*aspectRatio*(x - v_mousePosition.x)*aspectRatio + (y - v_mousePosition.y)*(y - v_mousePosition.y);
-        if (squareDistance < squareMouseRadius)
-        {
-            vec2 awayFromMouse = vec2(x, y) - v_mousePosition;
-            r = atan(awayFromMouse.y / awayFromMouse.x);
-            if (awayFromMouse.x < 0.0) r += PI;
-        }
-
         uint x_ = floatBitsToUint(x);
         uint y_ = floatBitsToUint(y);
         uint r_ = floatBitsToUint(r);
@@ -242,10 +231,11 @@ function setupShaders(gl)
         result = uvec4(x_, y_, r_, v_);
     }`;
 
-    // Runs for each vertex defined over a pixel in the agent state texture
-    // to get the R and G (x and y position) values and passes that through
-    // for the fragment shader to draw those pixels
-    const renderAgentVertSrc = `#version 300 es
+  // Runs for each vertex defined over a pixel in the agent state texture
+  // to get the R and G (x and y position) values and passes that through
+  // for the fragment shader to draw those pixels
+  const renderAgentVertSrc =
+    `#version 300 es
     precision mediump float;
 
     in vec2 r_position;
@@ -272,10 +262,12 @@ function setupShaders(gl)
         float y = uintBitsToFloat(agent.y);
         gl_Position = vec4(2.0 * x - 1.0, 2.0 * y - 1.0, 0.0, 1.0);
 
-        gl_PointSize = ` + config.preset.pointSize.toFixed(2) + `;
+        gl_PointSize = ` +
+    config.preset.pointSize.toFixed(2) +
+    `;
     }`;
 
-    const renderAgentFragSrc = `#version 300 es
+  const renderAgentFragSrc = `#version 300 es
     precision mediump float;
     precision mediump int;
     precision mediump sampler2D;
@@ -289,7 +281,7 @@ function setupShaders(gl)
         color = col;
     }`;
 
-    const postProcessingVertSrc = `#version 300 es
+  const postProcessingVertSrc = `#version 300 es
     precision mediump float;
     in vec4 m_position;
     out vec2 v_texCoord;
@@ -300,13 +292,20 @@ function setupShaders(gl)
         v_texCoord = m_position.pq;
     }`;
 
-    const postProcessingFragSrc = `#version 300 es
+  const postProcessingFragSrc =
+    `#version 300 es
     precision mediump float;
     precision mediump sampler2D;
 
-    const float fadeSpeed = ` + (config.preset.fadeSpeed/255.0).toFixed(7) + `;
-    const float width = ` + config.canvas.width.toFixed(1) + `;
-    const float height = ` + config.canvas.height.toFixed(1) + `;
+    const float fadeSpeed = ` +
+    (config.preset.fadeSpeed / 255.0).toFixed(7) +
+    `;
+    const float width = ` +
+    config.canvas.width.toFixed(1) +
+    `;
+    const float height = ` +
+    config.canvas.height.toFixed(1) +
+    `;
 
     in vec2 v_texCoord;
     uniform sampler2D renderTex;
@@ -333,162 +332,199 @@ function setupShaders(gl)
         color = color - fadeSpeed;
     }`;
 
-    const moveAgentProg = compileShaders(gl, moveAgentVertSrc, moveAgentFragSrc);
-    gl.useProgram(moveAgentProg);
-    const pMoveAgentAgentTex = gl.getUniformLocation(moveAgentProg, "agentTex");
-    gl.uniform1i(pMoveAgentAgentTex, 0);
-    const pMoveAgentRenderTex = gl.getUniformLocation(moveAgentProg, "renderTex");
-    gl.uniform1i(pMoveAgentRenderTex, 1);
+  const moveAgentProg = compileShaders(gl, moveAgentVertSrc, moveAgentFragSrc);
+  gl.useProgram(moveAgentProg);
+  const pMoveAgentAgentTex = gl.getUniformLocation(moveAgentProg, "agentTex");
+  gl.uniform1i(pMoveAgentAgentTex, 0);
+  const pMoveAgentRenderTex = gl.getUniformLocation(moveAgentProg, "renderTex");
+  gl.uniform1i(pMoveAgentRenderTex, 1);
 
-    const renderAgentProg = compileShaders(gl, renderAgentVertSrc, renderAgentFragSrc);
-    gl.useProgram(renderAgentProg);
-    const pRenderAgentAgentTex = gl.getUniformLocation(renderAgentProg, "agentTex");
-    gl.uniform1i(pRenderAgentAgentTex, 0);
-    const pRenderAgentAgentColor = gl.getUniformLocation(renderAgentProg, "agentCol");
-    gl.uniform1i(pRenderAgentAgentColor, 1);
+  const renderAgentProg = compileShaders(
+    gl,
+    renderAgentVertSrc,
+    renderAgentFragSrc
+  );
+  gl.useProgram(renderAgentProg);
+  const pRenderAgentAgentTex = gl.getUniformLocation(
+    renderAgentProg,
+    "agentTex"
+  );
+  gl.uniform1i(pRenderAgentAgentTex, 0);
+  const pRenderAgentAgentColor = gl.getUniformLocation(
+    renderAgentProg,
+    "agentCol"
+  );
+  gl.uniform1i(pRenderAgentAgentColor, 1);
 
-    const postProcessingProg = compileShaders(gl, postProcessingVertSrc, postProcessingFragSrc);
-    gl.useProgram(postProcessingProg);
-    const pPostProcessingRenderTex = gl.getUniformLocation(postProcessingProg, "renderTex");
-    gl.uniform1i(pPostProcessingRenderTex, 0);
+  const postProcessingProg = compileShaders(
+    gl,
+    postProcessingVertSrc,
+    postProcessingFragSrc
+  );
+  gl.useProgram(postProcessingProg);
+  const pPostProcessingRenderTex = gl.getUniformLocation(
+    postProcessingProg,
+    "renderTex"
+  );
+  gl.uniform1i(pPostProcessingRenderTex, 0);
 
-    gl.useProgram(null);
+  gl.useProgram(null);
 
-    return {
-        moveAgentProg: moveAgentProg,
-        renderAgentProg: renderAgentProg,
-        postProcessingProg: postProcessingProg,
-    }
+  return {
+    moveAgentProg: moveAgentProg,
+    renderAgentProg: renderAgentProg,
+    postProcessingProg: postProcessingProg,
+  };
 }
 
-function compileShaders(gl, vertSrc, fragSrc)
-{
-    const vs = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vs, vertSrc);
-    gl.compileShader(vs);
-    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(vs));
+function compileShaders(gl, vertSrc, fragSrc) {
+  const vs = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vs, vertSrc);
+  gl.compileShader(vs);
+  if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS))
+    console.error(gl.getShaderInfoLog(vs));
 
-    const fs = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fs, fragSrc);
-    gl.compileShader(fs);
-    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(fs));
+  const fs = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fs, fragSrc);
+  gl.compileShader(fs);
+  if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS))
+    console.error(gl.getShaderInfoLog(fs));
 
-    const prog = gl.createProgram();
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
+  const prog = gl.createProgram();
+  gl.attachShader(prog, vs);
+  gl.attachShader(prog, fs);
+  gl.linkProgram(prog);
 
-    gl.deleteShader(vs);
-    gl.deleteShader(fs);
+  gl.deleteShader(vs);
+  gl.deleteShader(fs);
 
-    return prog;
+  return prog;
 }
 
-function setupAgentControl(gl, config, shaders)
-{
-    // ---------- TEXTURES ----------
-    let agentData = [];
-    let aspectRatio = config.canvas.height / config.canvas.width;
+function setupAgentControl(gl, config, shaders) {
+  // ---------- TEXTURES ----------
+  let agentData = [];
+  let aspectRatio = config.canvas.height / config.canvas.width;
 
-    for (let i = 0; i < config.agents.length; i++) {
-        agentData.push((config.agents[i].x) * aspectRatio + 0.5);
-        agentData.push(config.agents[i].y + 0.5);
-        agentData.push(config.agents[i].rot);
-        agentData.push(0.5); // percentage of max speed
+  for (let i = 0; i < config.agents.length; i++) {
+    agentData.push(config.agents[i].x * aspectRatio + 0.5);
+    agentData.push(config.agents[i].y + 0.5);
+    agentData.push(config.agents[i].rot);
+    agentData.push(0.5); // percentage of max speed
+  }
+  TEXTURES = createTextures(
+    gl,
+    new Float32Array(agentData),
+    new Uint8Array(config.agentColors)
+  );
+
+  // ---------- USER INPUT ----------
+  gl.useProgram(shaders.moveAgentProg);
+  gl.useProgram(null);
+
+  // ---------- VERTEX BUFFERS ----------
+
+  var m_position = gl.getAttribLocation(shaders.moveAgentProg, "m_position");
+  var r_agentCoord = gl.getAttribLocation(
+    shaders.renderAgentProg,
+    "r_agentCoord"
+  );
+  var m_position_postprocess = gl.getAttribLocation(
+    shaders.postProcessingProg,
+    "m_position"
+  );
+
+  BUFFERS = {
+    positionBuffer: gl.createBuffer(),
+    lookupBuffer: gl.createBuffer(),
+    inputBuffer: gl.createBuffer(),
+  };
+
+  // Vertex + coordinate buffer for rectangle across entire canvas
+  gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.positionBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([
+      -1, -1, 0, 0, 1, -1, 1, 0, -1, 1, 0, 1, -1, 1, 0, 1, 1, -1, 1, 0, 1, 1, 1,
+      1,
+    ]),
+    gl.STATIC_DRAW
+  );
+  // Give moveAgent and postProcessing access to the vertex buffer
+  gl.enableVertexAttribArray(m_position);
+  gl.vertexAttribPointer(m_position, 4, gl.FLOAT, false, 0, 0);
+  gl.vertexAttribPointer(m_position_postprocess, 4, gl.FLOAT, false, 0, 0);
+
+  // Vertex buffer with locations for each agent pixel in agentTex
+  gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.lookupBuffer);
+  // coordinates for the centre of each pixel in agentTex
+  let lookupBufferData = [];
+  for (let i = 0; i < TEXTURES.agentTextureLength; i++) {
+    for (let j = 0; j < TEXTURES.agentTextureLength; j++) {
+      // push x and y coordinates for centre of each pixel
+      lookupBufferData.push((j + 0.5) / TEXTURES.agentTextureLength);
+      lookupBufferData.push((i + 0.5) / TEXTURES.agentTextureLength);
     }
-    TEXTURES = createTextures(gl, new Float32Array(agentData), new Uint8Array(config.agentColors));
+  }
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(lookupBufferData),
+    gl.STATIC_DRAW
+  );
+  // Give renderAgent this buffer
+  gl.enableVertexAttribArray(r_agentCoord);
+  gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.lookupBuffer);
+  gl.vertexAttribPointer(r_agentCoord, 2, gl.FLOAT, false, 0, 0);
 
+  // ---------- FRAME BUFFERS ----------
+  FRAME_BUFFERS = {
+    agentFramebuffer: gl.createFramebuffer(),
+    postProcessingFrameBuffer: gl.createFramebuffer(),
+  };
 
-    // ---------- USER INPUT ----------
-    // Set the mouse position uniform for the agent update shader
-    gl.useProgram(shaders.moveAgentProg);
-    userState.pMousePosition = gl.getUniformLocation(shaders.moveAgentProg, 'v_mousePosition');
-    gl.uniform2f(userState.pMousePosition, 0.5, 0.5);
-    gl.useProgram(null);
+  // ---------- RENDER ----------
+  var ping = true;
+  var then = window.performance.now();
+  var targetInterval = 1000 / TARGET_FPS;
+  var stop = false;
 
+  function tick(now) {
+    if (stop) return;
+    let deltaTime = now - then;
+    if (deltaTime > targetInterval) {
+      then = now - (deltaTime % targetInterval);
 
-    // ---------- VERTEX BUFFERS ----------
-
-    var m_position = gl.getAttribLocation(shaders.moveAgentProg, 'm_position');
-    var r_agentCoord = gl.getAttribLocation(shaders.renderAgentProg, 'r_agentCoord');
-    var m_position_postprocess = gl.getAttribLocation(shaders.postProcessingProg, 'm_position');
-
-    BUFFERS = {
-        positionBuffer: gl.createBuffer(),
-        lookupBuffer: gl.createBuffer(),
-        inputBuffer: gl.createBuffer()
+      render(ping, gl, SHADERS, FRAME_BUFFERS, TEXTURES);
+      ping = !ping;
     }
 
-    // Vertex + coordinate buffer for rectangle across entire canvas
-    gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,0,0, 1,-1,1,0, -1,1,0,1, -1,1,0,1, 1,-1,1,0, 1,1,1,1]), gl.STATIC_DRAW);
-    // Give moveAgent and postProcessing access to the vertex buffer
-    gl.enableVertexAttribArray(m_position);
-    gl.vertexAttribPointer(m_position, 4, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribPointer(m_position_postprocess, 4, gl.FLOAT, false, 0, 0);
-
-    // Vertex buffer with locations for each agent pixel in agentTex
-    gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.lookupBuffer);
-    // coordinates for the centre of each pixel in agentTex
-    let lookupBufferData = [];
-    for (let i = 0; i < TEXTURES.agentTextureLength; i++)
-    {
-        for (let j = 0; j < TEXTURES.agentTextureLength; j++)
-        {
-            // push x and y coordinates for centre of each pixel
-            lookupBufferData.push((j + 0.5)/TEXTURES.agentTextureLength);
-            lookupBufferData.push((i + 0.5)/TEXTURES.agentTextureLength);
-        }
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lookupBufferData), gl.STATIC_DRAW);
-    // Give renderAgent this buffer
-    gl.enableVertexAttribArray(r_agentCoord);
-    gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.lookupBuffer);
-    gl.vertexAttribPointer(r_agentCoord, 2, gl.FLOAT, false, 0, 0);
-
-
-    // ---------- FRAME BUFFERS ----------
-    FRAME_BUFFERS = {
-        agentFramebuffer: gl.createFramebuffer(),
-        postProcessingFrameBuffer: gl.createFramebuffer()
-    }
-
-
-    // ---------- RENDER ----------
-    var ping = true;
-    var then = window.performance.now();
-    var targetInterval = 1000 / TARGET_FPS;
-    var stop = false;
-
-    function tick(now)
-    {
-        if (stop) return;
-        let deltaTime = now - then;
-        if (deltaTime > targetInterval) {
-          then = now - (deltaTime % targetInterval);
-
-          render(ping, gl, SHADERS, FRAME_BUFFERS, TEXTURES);
-          ping = !ping;
-        }
-
-        window.requestAnimationFrame(tick);
-    }
     window.requestAnimationFrame(tick);
+  }
+  window.requestAnimationFrame(tick);
 }
 
-function createTexture(gl, internalFormat, width, height, format, type, data)
-{
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
+function createTexture(gl, internalFormat, width, height, format, type, data) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    internalFormat,
+    width,
+    height,
+    0,
+    format,
+    type,
+    data
+  );
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  return texture;
 }
 /*
     Creates 4 textures:
@@ -503,126 +539,184 @@ function createTexture(gl, internalFormat, width, height, format, type, data)
     In the agent shader, use texture(trailMap, vec2(x, y)), with some offsets
     to sense trails surrounding the agent, and use that to steer it.
 */
-function createTextures(gl, agentData, agentColorData)
-{
-    const agentTextureLength = Math.ceil(Math.sqrt(config.agents.length));
-    let agentDataUInt32 = new Uint32Array(agentData.buffer);
+function createTextures(gl, agentData, agentColorData) {
+  const agentTextureLength = Math.ceil(Math.sqrt(config.agents.length));
+  let agentDataUInt32 = new Uint32Array(agentData.buffer);
 
-    const agentTex = createTexture(gl, gl.RGBA32UI, agentTextureLength, agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, agentDataUInt32);
-    // swap texture for every 2nd frame of computation
-    const agentTex_ = createTexture(gl, gl.RGBA32UI, agentTextureLength, agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, null);
+  const agentTex = createTexture(
+    gl,
+    gl.RGBA32UI,
+    agentTextureLength,
+    agentTextureLength,
+    gl.RGBA_INTEGER,
+    gl.UNSIGNED_INT,
+    agentDataUInt32
+  );
+  // swap texture for every 2nd frame of computation
+  const agentTex_ = createTexture(
+    gl,
+    gl.RGBA32UI,
+    agentTextureLength,
+    agentTextureLength,
+    gl.RGBA_INTEGER,
+    gl.UNSIGNED_INT,
+    null
+  );
 
-    const agentColor = createTexture(gl, gl.RGBA, agentTextureLength, agentTextureLength, gl.RGBA, gl.UNSIGNED_BYTE, agentColorData);
+  const agentColor = createTexture(
+    gl,
+    gl.RGBA,
+    agentTextureLength,
+    agentTextureLength,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    agentColorData
+  );
 
-    const renderTex = createTexture(gl, gl.RGBA, config.canvas.width, config.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    // swap texture for every 2nd frame of rendering
-    const renderTex_ = createTexture(gl, gl.RGBA, config.canvas.width, config.canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  const renderTex = createTexture(
+    gl,
+    gl.RGBA,
+    config.canvas.width,
+    config.canvas.height,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null
+  );
+  // swap texture for every 2nd frame of rendering
+  const renderTex_ = createTexture(
+    gl,
+    gl.RGBA,
+    config.canvas.width,
+    config.canvas.height,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null
+  );
 
-    return {
-        agentTexture: agentTex,
-        agentTextureSwap: agentTex_,
-        agentColor: agentColor,
-        agentTextureLength: agentTextureLength,
-        renderTexture: renderTex,
-        renderTextureSwap: renderTex_
-    };
+  return {
+    agentTexture: agentTex,
+    agentTextureSwap: agentTex_,
+    agentColor: agentColor,
+    agentTextureLength: agentTextureLength,
+    renderTexture: renderTex,
+    renderTextureSwap: renderTex_,
+  };
 }
 
-function render(ping, gl, shaders, frameBuffers, textures)
-{
-    /*
+function render(ping, gl, shaders, frameBuffers, textures) {
+  /*
     Ping-pong buffer: Alternate between agentTex & agentTexSwap,
     and alternate between renderTexture and renderTextureSwap
     Swap the agentTextures
     */
 
-    // ------- AGENT MOVEMENT UPDATE -------
+  // ------- AGENT MOVEMENT UPDATE -------
 
-    // Mobile rendering fails here
+  // Mobile rendering fails here
 
-    gl.viewport(0, 0, textures.agentTextureLength, textures.agentTextureLength);
-    gl.useProgram(shaders.moveAgentProg);
-    // update the user input uniform
-    gl.uniform2f(userState.pMousePosition, userState.mousePos[0], userState.mousePos[1]);
+  gl.viewport(0, 0, textures.agentTextureLength, textures.agentTextureLength);
+  gl.useProgram(shaders.moveAgentProg);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.agentFramebuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.agentTextureSwap : textures.agentTexture, 0);
-    // set UNIT 0 to be agentTexture or agentTextureSwap
-    gl.activeTexture(gl.TEXTURE0 + 0);
-    gl.bindTexture(gl.TEXTURE_2D, (ping) ? textures.agentTexture : textures.agentTextureSwap);
-    gl.activeTexture(gl.TEXTURE0 + 1);
-    gl.bindTexture(gl.TEXTURE_2D, textures.renderTexture);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.agentFramebuffer);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    ping ? textures.agentTextureSwap : textures.agentTexture,
+    0
+  );
+  // set UNIT 0 to be agentTexture or agentTextureSwap
+  gl.activeTexture(gl.TEXTURE0 + 0);
+  gl.bindTexture(
+    gl.TEXTURE_2D,
+    ping ? textures.agentTexture : textures.agentTextureSwap
+  );
+  gl.activeTexture(gl.TEXTURE0 + 1);
+  gl.bindTexture(gl.TEXTURE_2D, textures.renderTexture);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    //var pixels = new Uint32Array(textures.agentTextureLength * textures.agentTextureLength * 16);
-    //gl.readPixels(0, 0, textures.agentTextureLength, textures.agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
-    //console.log(pixels);
+  //var pixels = new Uint32Array(textures.agentTextureLength * textures.agentTextureLength * 16);
+  //gl.readPixels(0, 0, textures.agentTextureLength, textures.agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
+  //console.log(pixels);
 
-    // --------------------------------------
+  // --------------------------------------
 
-    // ------- AGENT RENDERING -------
-    gl.viewport(0, 0, config.canvas.width, config.canvas.height);
-    // Render to the render-texture swap
-    gl.useProgram(shaders.renderAgentProg);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.postProcessingFrameBuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.renderTextureSwap : textures.renderTexture, 0);
+  // ------- AGENT RENDERING -------
+  gl.viewport(0, 0, config.canvas.width, config.canvas.height);
+  // Render to the render-texture swap
+  gl.useProgram(shaders.renderAgentProg);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.postProcessingFrameBuffer);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    ping ? textures.renderTextureSwap : textures.renderTexture,
+    0
+  );
 
-    gl.activeTexture(gl.TEXTURE0 + 0);
-    gl.bindTexture(gl.TEXTURE_2D, textures.agentTexture);
-    gl.activeTexture(gl.TEXTURE0 + 1);
-    gl.bindTexture(gl.TEXTURE_2D, textures.agentColor);
+  gl.activeTexture(gl.TEXTURE0 + 0);
+  gl.bindTexture(gl.TEXTURE_2D, textures.agentTexture);
+  gl.activeTexture(gl.TEXTURE0 + 1);
+  gl.bindTexture(gl.TEXTURE_2D, textures.agentColor);
 
-    gl.drawArrays(gl.POINTS, 0, config.agents.length);
-    // --------------------------------------
+  gl.drawArrays(gl.POINTS, 0, config.agents.length);
+  // --------------------------------------
 
-    // ------- POST PROCESSING -------
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.renderTexture : textures.renderTextureSwap, 0);
+  // ------- POST PROCESSING -------
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    ping ? textures.renderTexture : textures.renderTextureSwap,
+    0
+  );
 
-    gl.useProgram(shaders.postProcessingProg);
+  gl.useProgram(shaders.postProcessingProg);
 
-    // set texture UNIT 0 to be the render/renderswap
-    gl.activeTexture(gl.TEXTURE0 + 0);
-    gl.bindTexture(gl.TEXTURE_2D, (ping) ? textures.renderTextureSwap : textures.renderTexture);
+  // set texture UNIT 0 to be the render/renderswap
+  gl.activeTexture(gl.TEXTURE0 + 0);
+  gl.bindTexture(
+    gl.TEXTURE_2D,
+    ping ? textures.renderTextureSwap : textures.renderTexture
+  );
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6); // draw to screen
-    // --------------------------------------
+  gl.drawArrays(gl.TRIANGLES, 0, 6); // draw to screen
+  // --------------------------------------
 }
 
-function shutdown()
-{
-    var numTextureUnits = GL_CONTEXT.getParameter(GL_CONTEXT.MAX_TEXTURE_IMAGE_UNITS);
-    for (var unit = 0; unit < numTextureUnits; ++unit)
-    {
-        GL_CONTEXT.activeTexture(GL_CONTEXT.TEXTURE0 + unit);
-        GL_CONTEXT.bindTexture(GL_CONTEXT.TEXTURE_2D, null);
-        GL_CONTEXT.bindTexture(GL_CONTEXT.TEXTURE_CUBE_MAP, null);
-    }
-    GL_CONTEXT.bindBuffer(GL_CONTEXT.ARRAY_BUFFER, null);
-    GL_CONTEXT.bindBuffer(GL_CONTEXT.ELEMENT_ARRAY_BUFFER, null);
-    GL_CONTEXT.bindRenderbuffer(GL_CONTEXT.RENDERBUFFER, null);
-    GL_CONTEXT.bindFramebuffer(GL_CONTEXT.FRAMEBUFFER, null);
+function shutdown() {
+  var numTextureUnits = GL_CONTEXT.getParameter(
+    GL_CONTEXT.MAX_TEXTURE_IMAGE_UNITS
+  );
+  for (var unit = 0; unit < numTextureUnits; ++unit) {
+    GL_CONTEXT.activeTexture(GL_CONTEXT.TEXTURE0 + unit);
+    GL_CONTEXT.bindTexture(GL_CONTEXT.TEXTURE_2D, null);
+    GL_CONTEXT.bindTexture(GL_CONTEXT.TEXTURE_CUBE_MAP, null);
+  }
+  GL_CONTEXT.bindBuffer(GL_CONTEXT.ARRAY_BUFFER, null);
+  GL_CONTEXT.bindBuffer(GL_CONTEXT.ELEMENT_ARRAY_BUFFER, null);
+  GL_CONTEXT.bindRenderbuffer(GL_CONTEXT.RENDERBUFFER, null);
+  GL_CONTEXT.bindFramebuffer(GL_CONTEXT.FRAMEBUFFER, null);
 
-    GL_CONTEXT.deleteProgram(SHADERS.moveAgentProg);
-    GL_CONTEXT.deleteProgram(SHADERS.renderAgentProg);
-    GL_CONTEXT.deleteProgram(SHADERS.postProcessingProg);
+  GL_CONTEXT.deleteProgram(SHADERS.moveAgentProg);
+  GL_CONTEXT.deleteProgram(SHADERS.renderAgentProg);
+  GL_CONTEXT.deleteProgram(SHADERS.postProcessingProg);
 
-    GL_CONTEXT.deleteFramebuffer(FRAME_BUFFERS.agentFramebuffer);
-    GL_CONTEXT.deleteFramebuffer(FRAME_BUFFERS.postProcessingFrameBuffer);
+  GL_CONTEXT.deleteFramebuffer(FRAME_BUFFERS.agentFramebuffer);
+  GL_CONTEXT.deleteFramebuffer(FRAME_BUFFERS.postProcessingFrameBuffer);
 
-    GL_CONTEXT.deleteBuffer(BUFFERS.lookupBuffer);
-    GL_CONTEXT.deleteBuffer(BUFFERS.positionBuffer);
+  GL_CONTEXT.deleteBuffer(BUFFERS.lookupBuffer);
+  GL_CONTEXT.deleteBuffer(BUFFERS.positionBuffer);
 
-    GL_CONTEXT.deleteTexture(TEXTURES.agentTex);
-    GL_CONTEXT.deleteTexture(TEXTURES.agentTex_);
-    GL_CONTEXT.deleteTexture(TEXTURES.agentColor);
-    GL_CONTEXT.deleteTexture(TEXTURES.renderTex);
-    GL_CONTEXT.deleteTexture(TEXTURES.renderTex_);
+  GL_CONTEXT.deleteTexture(TEXTURES.agentTex);
+  GL_CONTEXT.deleteTexture(TEXTURES.agentTex_);
+  GL_CONTEXT.deleteTexture(TEXTURES.agentColor);
+  GL_CONTEXT.deleteTexture(TEXTURES.renderTex);
+  GL_CONTEXT.deleteTexture(TEXTURES.renderTex_);
 }
 
-export {
-  init
-}
+export { init };

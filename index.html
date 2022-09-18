@@ -1,45 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Home</title>
-        <meta charset="utf-8">
-        <script src="https://greggman.github.io/webgl-lint/webgl-lint.js" crossorigin></script>
-        <script src="scripts/presets.js" type="text/javascript"></script>
-        <script src="scripts/vis.js" type="text/javascript"></script>
-        
+<html>
+  <head>
+    <title><%= productName %></title>
 
-        <link href='css/site.css' rel='stylesheet' type='text/css'>
-    </head>
-    <body>
-        <canvas id="vis" width="1080" height="1080"></canvas>
-        <select id="select-vis" onchange="changeInit(this)">
-        </select>
-        <button id="pause-button" onclick="toggleRender()">Pause</button>
-        <span id="fps"></span>
-        <script>
-            const dropdown = document.getElementById('select-vis');
-            for (let i = 0; i < presets.length; i++) {
-                dropdown.innerHTML += "<option value=" + i + ">" + presets[i].name + "</option>";
-            }
+    <meta charset="utf-8">
+    <meta name="description" content="<%= productDescription %>">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width<% if (ctx.mode.cordova || ctx.mode.capacitor) { %>, viewport-fit=cover<% } %>">
 
-            doRender = true;
-            const canvas = document.getElementById('vis');
-            init(1);
-
-            function changeInit(sel) {
-                const selection = parseInt(sel.value);
-                shutdown();
-                init(selection);
-            }
-
-            function toggleRender() {
-                doRender = !doRender;
-                if (doRender) window.requestAnimationFrame(tick);
-            }
-            
-        </script>
-    </body>
-
-
+    <link rel="icon" type="image/png" sizes="128x128" href="icons/favicon-128x128.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="icon" type="image/ico" href="favicon.ico">
+  </head>
+  <body>
+    <!-- quasar:entry-point -->
+  </body>
 </html>
-

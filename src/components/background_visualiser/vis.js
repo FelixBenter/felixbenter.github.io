@@ -1,3 +1,6 @@
+const SENSOR_RADIUS = 3.0; // in pixels
+const TARGET_FPS = 30;
+
 var g = {};
 const config = {
     agents: null,
@@ -6,15 +9,23 @@ const config = {
     preset: null,
 };
 
-GL_CONTEXT = null;
-SHADER = null;
-BUFFERS = null;
-FRAME_BUFFERS = null;
-TEXTURES = null;
+const userState = {
+    mouseDown: false,
+    mousePos: [-1.0, -1.0],
+    pMousePosition: null,
+
+}
+
+var GL_CONTEXT = null;
+var SHADERS = null;
+var BUFFERS = null;
+var FRAME_BUFFERS = null;
+var TEXTURES = null;
+var FPS_ELEM = null;
 
 /*
 The general idea here is to store the agent's index, position and angle in a texture,
-then run the fragment shader on it, which will ensure each agent gets processed, 
+then run the fragment shader on it, which will ensure each agent gets processed,
 which will calculate their new position based on their current velocity,
 checking for edge of screen bounces and so on
 
@@ -24,7 +35,7 @@ checking for edge of screen bounces and so on
     moveAgent → |
                 | READ renderTex (read surrounding pixels)
                 ↓ WRITE agentTex (update direction based on sense)
-                
+
                 ↑ READ agentTex (read agent position)
   renderAgent → ↓ WRITE renderTex (write agents onto render buffer)
 
@@ -34,37 +45,49 @@ checking for edge of screen bounces and so on
                 ============FRAME END============
 */
 
-function init(presetIndex)
+export default function init(preset)
 {
     const canvas = document.getElementById("vis");
+    FPS_ELEM = document.getElementById("fps");
     config.canvas = canvas;
-    config.preset = presets[presetIndex];
+    config.preset = preset;
     let agentData = config.preset.createAgents();
     config.agents = agentData.agents;
     config.agentColors = agentData.colors;
     config.sensorRadius = SENSOR_RADIUS;
 
-    const gl = canvas.getContext("webgl2", {preserveDrawingBuffer: true});
-
-    console.log(gl);
+    const gl = canvas.getContext("webgl2", {
+        preserveDrawingBuffer: true,
+        premultipliedAlpha: false,
+    });
     if (!gl)
     {
         gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params);
-        console.log("got gl:");
-        console.log(gl);
     }
 
     GL_CONTEXT = gl;
 
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     var ext = gl.getExtension("EXT_color_buffer_float");
     if (!ext) {
         alert("EXT_color_buffer_float failed to load");
     return;
     }
+
+    // Setup the user input functions
+    config.canvas.addEventListener('mousedown', function(e) {userState.mouseDown = true;});
+    config.canvas.addEventListener('mouseup', function(e) {userState.mouseDown = false;});
+    config.canvas.addEventListener('mousemove', function(e) {
+        if (userState.mouseDown) userState.mousePos = [e.pageX / config.canvas.width, 1.0 - e.pageY / config.canvas.height];
+        else userState.mousePos = [-5.0, -5.0];
+    })
+
 
     SHADERS = setupShaders(gl);
     setupAgentControl(gl, config, SHADERS);
@@ -77,6 +100,8 @@ function setupShaders(gl)
     precision mediump float;
 
     in vec4 m_position;
+    in vec2 m_mousePosition;
+
     out vec2 v_texCoord;
 
     void main(void)
@@ -92,11 +117,13 @@ function setupShaders(gl)
     precision mediump sampler2D;
     precision mediump usampler2D;
 
-    uniform usampler2D agentTex;
+    uniform usampler2D agentTex; // agent positions
     uniform sampler2D renderTex;
+    uniform vec2 v_mousePosition;
     in vec2 v_texCoord;
 
-    const float moveSpeed = ` + (config.preset.moveSpeed/config.canvas.width).toFixed(4) + `;
+    const float PI = 3.141;
+    const float maxSpeed = ` + (config.preset.maxSpeed/config.canvas.width).toFixed(4) + `;
     const float turnSpeed = ` + config.preset.turnSpeed.toFixed(4) + `;
     const float width = ` + config.canvas.width.toFixed(1) + `;
     const float height = ` + config.canvas.height.toFixed(1) + `;
@@ -104,6 +131,11 @@ function setupShaders(gl)
     const float sensorOffsetDistance = ` + (config.preset.sensorOffsetDistance/config.canvas.width).toFixed(4) + `;
     const float leftSensorAngle = ` + config.preset.leftSensorAngle.toFixed(2) + `;
     const float rightSensorAngle = ` + config.preset.rightSensorAngle.toFixed(2) + `;
+    const float squareMouseRadius = 0.005;
+    const float randomWeight = 0.05;
+
+    const float aspectRatio = width/height;
+    const float aspectRatioInv = height/width;
 
     out uvec4 result;
 
@@ -131,7 +163,7 @@ function setupShaders(gl)
             for (float j = -sensorRadius; j <= sensorRadius; j += 1.0/height)
             {
                 vec4 reading = texture(renderTex, sensorCentre + vec2(i, j));
-                sum += reading.x;
+                sum += length(reading.rgb);
             }
         }
         return sum;
@@ -140,46 +172,74 @@ function setupShaders(gl)
     void main(void)
     {
         uint pixelIndex = uint((gl_FragCoord.y * width) + (gl_FragCoord.x));
-        float pseudoRandomNumber = float(hash(pixelIndex)) / 4294967295.0; // normalise
+        uint pseudoRandomNumber = hash(pixelIndex);
+        float pseudoRandomWeight = float(pseudoRandomNumber) / 4294967295.0; // normalise
 
         uvec4 agent = texture(agentTex, v_texCoord);
         float x = uintBitsToFloat(agent.x);
         float y = uintBitsToFloat(agent.y);
         float r = uintBitsToFloat(agent.z);
+        float v = uintBitsToFloat(agent.w);
 
         // move agent along current path
-        x += cos(r) * moveSpeed;
-        y += sin(r) * moveSpeed;
+        x += cos(r) * v * maxSpeed * aspectRatioInv;
+        y += sin(r) * v * maxSpeed;
 
-        // check boundaries and reflect angle if hit
-        if (x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0)
+        // check boundaries and reflect angle if hit, or if near mouse
+        if ( x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0 )
         {
+            /*
             x = min(0.99, max(-0.99, x));
             y = min(0.99, max(-0.99, y));
-            r += pseudoRandomNumber * 0.2 + 3.141;
-            //r += 3.141;
+            float pseudoRandomTurnWeight = float(hash(pseudoRandomNumber)) / 4294967295.0;
+            r += pseudoRandomTurnWeight * PI;
+            */
 
-            //if (x < 0.0) x = 0.99;
-            //if (x > 1.0) x = 0.01;
-            //if (y < 0.0) y = 0.99;
-            //if (y > 1.0) y = 0.01;
+            // pass to other side
+            if (x < 0.0) x = 0.99; if (x > 1.0) x = 0.01;
+            if (y < 0.0) y = 0.99; if (y > 1.0) y = 0.01;
         }
-        
+
+
         float forwardReading = sense(x, y, r, 0.0);
         float leftReading = sense(x, y, r, leftSensorAngle);
         float rightReading = sense(x, y, r, rightSensorAngle);
 
-        if (forwardReading > leftReading && forwardReading > rightReading) r += 0.0; // no change
-        else if (forwardReading < leftReading && forwardReading < rightReading) r += (pseudoRandomNumber-0.5) * turnSpeed; // turn randomly
-        else if (rightReading > forwardReading && forwardReading > leftReading) r -= pseudoRandomNumber * turnSpeed; // turn left
-        else if (leftReading > forwardReading && forwardReading > rightReading) r += pseudoRandomNumber * turnSpeed; // turn right
+        if (forwardReading > leftReading && forwardReading > rightReading)
+        {
+            r += 0.0; // no change
+            v = min(v + 0.005 * pseudoRandomWeight, 1.0);
+        }
+        else if (forwardReading < leftReading && forwardReading < rightReading)
+        {
+            r += (pseudoRandomWeight-0.5) * turnSpeed; // turn randomly
+            v = max(v - 0.005 * pseudoRandomWeight, 0.1);
+        }
+        else if (rightReading > forwardReading && forwardReading > leftReading)
+        {
+            r -= turnSpeed + turnSpeed * (pseudoRandomWeight-0.5); // turn left
+        }
+        else if (leftReading > forwardReading && forwardReading > rightReading)
+        {
+            r += turnSpeed + turnSpeed * (pseudoRandomWeight-0.5); // turn right
+        }
 
+
+        // If within mouse range then set rotation directly away from mouse
+        float squareDistance = (x - v_mousePosition.x)*aspectRatio*(x - v_mousePosition.x)*aspectRatio + (y - v_mousePosition.y)*(y - v_mousePosition.y);
+        if (squareDistance < squareMouseRadius)
+        {
+            vec2 awayFromMouse = vec2(x, y) - v_mousePosition;
+            r = atan(awayFromMouse.y / awayFromMouse.x);
+            if (awayFromMouse.x < 0.0) r += PI;
+        }
 
         uint x_ = floatBitsToUint(x);
         uint y_ = floatBitsToUint(y);
         uint r_ = floatBitsToUint(r);
+        uint v_ = floatBitsToUint(v);
 
-        result = uvec4(uvec3(x_, y_, r_), 1);
+        result = uvec4(x_, y_, r_, v_);
     }`;
 
     // Runs for each vertex defined over a pixel in the agent state texture
@@ -187,30 +247,31 @@ function setupShaders(gl)
     // for the fragment shader to draw those pixels
     const renderAgentVertSrc = `#version 300 es
     precision mediump float;
-    
+
     in vec2 r_position;
     in vec2 r_agentCoord;
-    
+
     precision mediump sampler2D;
     precision mediump usampler2D;
 
     uniform usampler2D agentTex;
     uniform sampler2D agentCol;
-    
-    //out uvec4 agent;
+
     out vec4 col;
 
     void main(void)
     {
         // get the r & g (x & y positions) value of pixels in agentTex
         uvec4 agent = texture(agentTex, r_agentCoord);
+        float v = uintBitsToFloat(agent.w);
+
         col = texture(agentCol, r_agentCoord);
+        //col = vec4(v * col.r, col.g, (1.0-v) * col.b, col.a);
 
         float x = uintBitsToFloat(agent.x);
         float y = uintBitsToFloat(agent.y);
-        
-
         gl_Position = vec4(2.0 * x - 1.0, 2.0 * y - 1.0, 0.0, 1.0);
+
         gl_PointSize = ` + config.preset.pointSize.toFixed(2) + `;
     }`;
 
@@ -219,7 +280,6 @@ function setupShaders(gl)
     precision mediump int;
     precision mediump sampler2D;
 
-    //in uvec4 agent;
     in vec4 col;
 
     out vec4 color;
@@ -265,8 +325,7 @@ function setupShaders(gl)
                 sum += texture(renderTex, v_texCoord + vec2(offsetX, offsetY));
             }
         }
-
-	    vec4 blurredCol = sum / 9.0;
+	      vec4 blurredCol = sum / 9.0;
 
         color = blurredCol;
 
@@ -327,28 +386,42 @@ function compileShaders(gl, vertSrc, fragSrc)
 
 function setupAgentControl(gl, config, shaders)
 {
+    // ---------- TEXTURES ----------
     let agentData = [];
+    let aspectRatio = config.canvas.height / config.canvas.width;
+
     for (let i = 0; i < config.agents.length; i++) {
-        agentData.push(config.agents[i].x);
-        agentData.push(config.agents[i].y);
+        agentData.push((config.agents[i].x) * aspectRatio + 0.5);
+        agentData.push(config.agents[i].y + 0.5);
         agentData.push(config.agents[i].rot);
-        agentData.push(0.0);
+        agentData.push(0.5); // percentage of max speed
     }
     TEXTURES = createTextures(gl, new Float32Array(agentData), new Uint8Array(config.agentColors));
 
-    var m_position = gl.getAttribLocation(shaders.moveAgentProg, 'm_position');
 
+    // ---------- USER INPUT ----------
+    // Set the mouse position uniform for the agent update shader
+    gl.useProgram(shaders.moveAgentProg);
+    userState.pMousePosition = gl.getUniformLocation(shaders.moveAgentProg, 'v_mousePosition');
+    gl.uniform2f(userState.pMousePosition, 0.5, 0.5);
+    gl.useProgram(null);
+
+
+    // ---------- VERTEX BUFFERS ----------
+
+    var m_position = gl.getAttribLocation(shaders.moveAgentProg, 'm_position');
     var r_agentCoord = gl.getAttribLocation(shaders.renderAgentProg, 'r_agentCoord');
     var m_position_postprocess = gl.getAttribLocation(shaders.postProcessingProg, 'm_position');
 
     BUFFERS = {
         positionBuffer: gl.createBuffer(),
         lookupBuffer: gl.createBuffer(),
+        inputBuffer: gl.createBuffer()
     }
 
     // Vertex + coordinate buffer for rectangle across entire canvas
     gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 0,0,  1,-1, 1,0, -1,1, 0,1,  -1,1, 0,1,  1,-1, 1,0,  1,1, 1,1]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,0,0, 1,-1,1,0, -1,1,0,1, -1,1,0,1, 1,-1,1,0, 1,1,1,1]), gl.STATIC_DRAW);
     // Give moveAgent and postProcessing access to the vertex buffer
     gl.enableVertexAttribArray(m_position);
     gl.vertexAttribPointer(m_position, 4, gl.FLOAT, false, 0, 0);
@@ -357,7 +430,7 @@ function setupAgentControl(gl, config, shaders)
     // Vertex buffer with locations for each agent pixel in agentTex
     gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.lookupBuffer);
     // coordinates for the centre of each pixel in agentTex
-    let lookupBufferData = []; 
+    let lookupBufferData = [];
     for (let i = 0; i < TEXTURES.agentTextureLength; i++)
     {
         for (let j = 0; j < TEXTURES.agentTextureLength; j++)
@@ -373,29 +446,32 @@ function setupAgentControl(gl, config, shaders)
     gl.bindBuffer(gl.ARRAY_BUFFER, BUFFERS.lookupBuffer);
     gl.vertexAttribPointer(r_agentCoord, 2, gl.FLOAT, false, 0, 0);
 
-    // create framebuffer for agent info output
+
+    // ---------- FRAME BUFFERS ----------
     FRAME_BUFFERS = {
         agentFramebuffer: gl.createFramebuffer(),
         postProcessingFrameBuffer: gl.createFramebuffer()
     }
 
+
+    // ---------- RENDER ----------
     var ping = true;
-    const fpsElem = document.getElementById("fps");
-    let then = 0;
+    var then = window.performance.now();
+    var targetInterval = 1000 / TARGET_FPS;
+    var stop = false;
 
     function tick(now)
     {
-        render(ping, gl, SHADERS, FRAME_BUFFERS, TEXTURES);
-        ping = !ping;
+        if (stop) return;
+        let deltaTime = now - then;
+        if (deltaTime > targetInterval) {
+          then = now - (deltaTime % targetInterval);
 
-        // get FPS
-        now *= 0.001;                          // convert to seconds
-        const deltaTime = now - then;          // compute time since last frame
-        then = now;                            // remember time for next frame
-        const fps = 1 / deltaTime;             // compute frames per second
-        fpsElem.textContent = fps.toFixed(1);
-        
-        if (doRender) window.requestAnimationFrame(tick);
+          render(ping, gl, SHADERS, FRAME_BUFFERS, TEXTURES);
+          ping = !ping;
+        }
+
+        window.requestAnimationFrame(tick);
     }
     window.requestAnimationFrame(tick);
 }
@@ -430,8 +506,7 @@ function createTexture(gl, internalFormat, width, height, format, type, data)
 function createTextures(gl, agentData, agentColorData)
 {
     const agentTextureLength = Math.ceil(Math.sqrt(config.agents.length));
-
-    agentDataUInt32 = new Uint32Array(agentData.buffer);
+    let agentDataUInt32 = new Uint32Array(agentData.buffer);
 
     const agentTex = createTexture(gl, gl.RGBA32UI, agentTextureLength, agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, agentDataUInt32);
     // swap texture for every 2nd frame of computation
@@ -462,8 +537,14 @@ function render(ping, gl, shaders, frameBuffers, textures)
     */
 
     // ------- AGENT MOVEMENT UPDATE -------
-    gl.viewport(0, 0, textures.agentTextureLength, textures.agentTextureLength); 
+
+    // Mobile rendering fails here
+
+    gl.viewport(0, 0, textures.agentTextureLength, textures.agentTextureLength);
     gl.useProgram(shaders.moveAgentProg);
+    // update the user input uniform
+    gl.uniform2f(userState.pMousePosition, userState.mousePos[0], userState.mousePos[1]);
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.agentFramebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.agentTextureSwap : textures.agentTexture, 0);
     // set UNIT 0 to be agentTexture or agentTextureSwap
@@ -474,11 +555,9 @@ function render(ping, gl, shaders, frameBuffers, textures)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    var pixels = new Uint32Array(textures.agentTextureLength * textures.agentTextureLength * 16);
-    gl.readPixels(0, 0, textures.agentTextureLength, textures.agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
-    console.log(pixels[0]);
-
-
+    //var pixels = new Uint32Array(textures.agentTextureLength * textures.agentTextureLength * 16);
+    //gl.readPixels(0, 0, textures.agentTextureLength, textures.agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
+    //console.log(pixels);
 
     // --------------------------------------
 
@@ -488,18 +567,18 @@ function render(ping, gl, shaders, frameBuffers, textures)
     gl.useProgram(shaders.renderAgentProg);
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.postProcessingFrameBuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.renderTextureSwap : textures.renderTexture, 0);
-    
+
     gl.activeTexture(gl.TEXTURE0 + 0);
     gl.bindTexture(gl.TEXTURE_2D, textures.agentTexture);
     gl.activeTexture(gl.TEXTURE0 + 1);
     gl.bindTexture(gl.TEXTURE_2D, textures.agentColor);
-    
+
     gl.drawArrays(gl.POINTS, 0, config.agents.length);
     // --------------------------------------
-    
+
     // ------- POST PROCESSING -------
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, (ping) ? textures.renderTexture : textures.renderTextureSwap, 0);
-    
+
     gl.useProgram(shaders.postProcessingProg);
 
     // set texture UNIT 0 to be the render/renderswap
@@ -508,7 +587,7 @@ function render(ping, gl, shaders, frameBuffers, textures)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    
+
     gl.drawArrays(gl.TRIANGLES, 0, 6); // draw to screen
     // --------------------------------------
 }
@@ -542,4 +621,8 @@ function shutdown()
     GL_CONTEXT.deleteTexture(TEXTURES.agentColor);
     GL_CONTEXT.deleteTexture(TEXTURES.renderTex);
     GL_CONTEXT.deleteTexture(TEXTURES.renderTex_);
+}
+
+export {
+  init
 }

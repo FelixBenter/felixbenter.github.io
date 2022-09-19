@@ -1,15 +1,14 @@
+import * as debug from "src/debug/webgl-debug.js";
 const SENSOR_RADIUS = 2.0; // in pixels
 const TARGET_FPS = 30;
+var DO_RENDER;
 
-var g = {};
 const config = {
   agents: null,
   agentColors: null,
   canvas: null,
   preset: null,
 };
-
-const userState = {};
 
 var GL_CONTEXT = null;
 var SHADERS = null;
@@ -40,7 +39,7 @@ checking for edge of screen bounces and so on
                 ============FRAME END============
 */
 
-export default function init(preset) {
+function init(preset) {
   const canvas = document.getElementById("vis");
   FPS_ELEM = document.getElementById("fps");
   config.canvas = canvas;
@@ -50,7 +49,7 @@ export default function init(preset) {
   config.agentColors = agentData.colors;
   config.sensorRadius = SENSOR_RADIUS;
 
-  const gl = canvas.getContext("webgl2", {
+  var gl = canvas.getContext("webgl2", {
     preserveDrawingBuffer: true,
     premultipliedAlpha: false,
   });
@@ -60,6 +59,12 @@ export default function init(preset) {
       canvas.getContext("experimental-webgl", params);
   }
 
+  // DEBUG ERROR HANDLING
+  gl = debug.default.makeDebugContext(gl, function (err, funcName, args) {
+    throw (
+      debug.default.glEnumToString(err) + " was caused by call to: " + funcName
+    );
+  });
   GL_CONTEXT = gl;
 
   gl.viewport(0, 0, canvas.width, canvas.height);
@@ -74,7 +79,7 @@ export default function init(preset) {
     alert("EXT_color_buffer_float failed to load");
     return;
   }
-
+  DO_RENDER = true;
   SHADERS = setupShaders(gl);
   setupAgentControl(gl, config, SHADERS);
 }
@@ -486,10 +491,9 @@ function setupAgentControl(gl, config, shaders) {
   var ping = true;
   var then = window.performance.now();
   var targetInterval = 1000 / TARGET_FPS;
-  var stop = false;
 
   function tick(now) {
-    if (stop) return;
+    if (!DO_RENDER) return;
     let deltaTime = now - then;
     if (deltaTime > targetInterval) {
       then = now - (deltaTime % targetInterval);
@@ -689,6 +693,7 @@ function render(ping, gl, shaders, frameBuffers, textures) {
 }
 
 function shutdown() {
+  DO_RENDER = false;
   var numTextureUnits = GL_CONTEXT.getParameter(
     GL_CONTEXT.MAX_TEXTURE_IMAGE_UNITS
   );
@@ -719,4 +724,4 @@ function shutdown() {
   GL_CONTEXT.deleteTexture(TEXTURES.renderTex_);
 }
 
-export { init };
+export { init, shutdown };

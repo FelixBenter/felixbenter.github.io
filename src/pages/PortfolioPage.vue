@@ -113,8 +113,8 @@ export default defineComponent({
           subtitle: "A Blender plugin for importing Fromsoft DCX files",
           description: `
           An add-on for the 3D modelling program Blender to import proprietary model and texture files from FromSoftware video games.
-          The tool unpacks the input files and loads mesh data, armature data and finds the appropriate texture data for that model
-           It then loads these items into Blender and applies the armature and texture data into a rigged and textured blender model.
+          The tool unpacks the input files and loads mesh data, armature data and finds the appropriate texture data for that model.
+          It then loads these items into Blender and applies the armature and texture data into a rigged and textured blender model.
           `,
           imgs: [
             {

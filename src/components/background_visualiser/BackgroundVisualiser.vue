@@ -21,12 +21,15 @@ export default defineComponent({
       var h = parseInt(styles.getPropertyValue("height"), 10);
       canvas.width = w - 100;
       canvas.height = h - 300;
-
-      console.log(w, h);
       vis.init(presets[0]);
     });
   },
-  methods: {},
+  unmounted() {
+    vis.shutdown();
+  },
+  methods: {
+    // TODO: Add tweakable parameters
+  },
 
   setup() {
     return {};

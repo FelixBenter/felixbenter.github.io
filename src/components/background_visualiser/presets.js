@@ -31,13 +31,13 @@ let presets = [
       }
       return { agents: agents, colors: agentColorData };
     },
-    pointSize: 2.0,
+    pointSize: 1.0,
     turnSpeed: 0.25,
     maxSpeed: 4.0,
     fadeSpeed: 10.0,
-    sensorOffsetDistance: 10.0,
-    leftSensorAngle: 0.3,
-    rightSensorAngle: -0.3,
+    sensorOffsetDistance: 20.0,
+    leftSensorAngle: 0.25,
+    rightSensorAngle: -0.25,
   },
 ];
 export default presets;

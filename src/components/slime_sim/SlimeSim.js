@@ -1,4 +1,4 @@
-import * as debug from "src/debug/webgl-debug.js";
+import * as shaders from "./shaders";
 const SENSOR_RADIUS = 2.0; // in pixels
 const TARGET_FPS = 30;
 var DO_RENDER;
@@ -39,8 +39,7 @@ checking for edge of screen bounces and so on
                 ============FRAME END============
 */
 
-function init(preset) {
-  const canvas = document.getElementById("vis");
+function init(canvas, preset) {
   FPS_ELEM = document.getElementById("fps");
   config.canvas = canvas;
   config.preset = preset;
@@ -49,10 +48,14 @@ function init(preset) {
   config.agentColors = agentData.colors;
   config.sensorRadius = SENSOR_RADIUS;
 
-  var gl = canvas.getContext("webgl2", {
+  var params = {
+    depth: false,
+    stencil: false,
+    antialias: false,
     preserveDrawingBuffer: true,
     premultipliedAlpha: false,
-  });
+  };
+  var gl = canvas.getContext("webgl2", params);
   if (!gl) {
     gl =
       canvas.getContext("webgl", params) ||
@@ -60,13 +63,14 @@ function init(preset) {
   }
 
   // DEBUG ERROR HANDLING
+  /*
   gl = debug.default.makeDebugContext(gl, function (err, funcName, args) {
     throw (
       debug.default.glEnumToString(err) + " was caused by call to: " + funcName
     );
   });
+  */
   GL_CONTEXT = gl;
-
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -81,308 +85,35 @@ function init(preset) {
   }
   DO_RENDER = true;
   SHADERS = setupShaders(gl);
+  setupUniforms(gl, config, SHADERS);
   setupAgentControl(gl, config, SHADERS);
 }
 
 function setupShaders(gl) {
-  // pasthrough shader
-  const moveAgentVertSrc = `#version 300 es
-    precision mediump float;
-
-    in vec4 m_position;
-
-    out vec2 v_texCoord;
-
-    void main(void)
-    {
-        gl_Position = vec4(m_position.xy, 0.0, 1.0);
-        v_texCoord = m_position.zw;
-    }`;
-
-  // Calculates new x, y and r values for the agent state texture
-  const moveAgentFragSrc =
-    `#version 300 es
-    precision mediump float;
-    precision mediump int;
-    precision mediump sampler2D;
-    precision mediump usampler2D;
-
-    uniform usampler2D agentTex; // agent positions
-    uniform sampler2D renderTex;
-    in vec2 v_texCoord;
-
-    const float PI = 3.141;
-    const float maxSpeed = ` +
-    (config.preset.maxSpeed / config.canvas.width).toFixed(4) +
-    `;
-    const float turnSpeed = ` +
-    config.preset.turnSpeed.toFixed(4) +
-    `;
-    const float width = ` +
-    config.canvas.width.toFixed(1) +
-    `;
-    const float height = ` +
-    config.canvas.height.toFixed(1) +
-    `;
-    const float sensorRadius = ` +
-    (config.sensorRadius / config.canvas.width).toFixed(4) +
-    `;
-    const float sensorOffsetDistance = ` +
-    (config.preset.sensorOffsetDistance / config.canvas.width).toFixed(4) +
-    `;
-    const float leftSensorAngle = ` +
-    config.preset.leftSensorAngle.toFixed(2) +
-    `;
-    const float rightSensorAngle = ` +
-    config.preset.rightSensorAngle.toFixed(2) +
-    `;
-    const float randomWeight = 0.05;
-
-    const float aspectRatio = width/height;
-    const float aspectRatioInv = height/width;
-
-    out uvec4 result;
-
-    uint hash(uint x);
-    uint hash(uint x)
-    {
-        x ^= 2747636419u;
-        x *= 2654435769u;
-        x ^= x >> 16;
-        x *= 2654435769u;
-        x ^= x >> 16;
-        x *= 2654435769u;
-        return x;
-    }
-
-    float sense(float x, float y, float r, float offset);
-    float sense(float x, float y, float r, float offset)
-    {
-        float sensorAngle = r + offset;
-        vec2 sensorDirection = vec2(cos(sensorAngle), sin(sensorAngle));
-        vec2 sensorCentre = vec2(x, y) + sensorDirection * sensorOffsetDistance;
-        float sum = 0.0;
-        for (float i = -sensorRadius; i <= sensorRadius; i += 1.0/width)
-        {
-            for (float j = -sensorRadius; j <= sensorRadius; j += 1.0/height)
-            {
-                vec4 reading = texture(renderTex, sensorCentre + vec2(i, j));
-                sum += length(reading.rgb);
-            }
-        }
-        return sum;
-    }
-
-    void main(void)
-    {
-        uint pixelIndex = uint((gl_FragCoord.y * width) + (gl_FragCoord.x));
-        uint pseudoRandomNumber = hash(pixelIndex);
-        float pseudoRandomWeight = float(pseudoRandomNumber) / 4294967295.0; // normalise
-
-        uvec4 agent = texture(agentTex, v_texCoord);
-        float x = uintBitsToFloat(agent.x);
-        float y = uintBitsToFloat(agent.y);
-        float r = uintBitsToFloat(agent.z);
-        float v = uintBitsToFloat(agent.w);
-
-        // move agent along current path
-        x += cos(r) * v * maxSpeed * aspectRatioInv;
-        y += sin(r) * v * maxSpeed;
-
-        // check boundaries and reflect angle if hit
-        if ( x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0 )
-        {
-            /*
-            x = min(0.99, max(-0.99, x));
-            y = min(0.99, max(-0.99, y));
-            float pseudoRandomTurnWeight = float(hash(pseudoRandomNumber)) / 4294967295.0;
-            r += pseudoRandomTurnWeight * PI;
-            */
-
-            // pass to other side
-            if (x < 0.0) x = 0.99; if (x > 1.0) x = 0.01;
-            if (y < 0.0) y = 0.99; if (y > 1.0) y = 0.01;
-        }
-
-
-        float forwardReading = sense(x, y, r, 0.0);
-        float leftReading = sense(x, y, r, leftSensorAngle);
-        float rightReading = sense(x, y, r, rightSensorAngle);
-
-        if (forwardReading > leftReading && forwardReading > rightReading)
-        {
-            r += 0.0; // no change
-            v = min(v + 0.005 * pseudoRandomWeight, 1.0);
-        }
-        else if (forwardReading < leftReading && forwardReading < rightReading)
-        {
-            r += (pseudoRandomWeight-0.5) * turnSpeed; // turn randomly
-            v = max(v - 0.005 * pseudoRandomWeight, 0.1);
-        }
-        else if (rightReading > forwardReading && forwardReading > leftReading)
-        {
-            r -= turnSpeed + turnSpeed * (pseudoRandomWeight-0.5); // turn left
-        }
-        else if (leftReading > forwardReading && forwardReading > rightReading)
-        {
-            r += turnSpeed + turnSpeed * (pseudoRandomWeight-0.5); // turn right
-        }
-
-        uint x_ = floatBitsToUint(x);
-        uint y_ = floatBitsToUint(y);
-        uint r_ = floatBitsToUint(r);
-        uint v_ = floatBitsToUint(v);
-
-        result = uvec4(x_, y_, r_, v_);
-    }`;
-
-  // Runs for each vertex defined over a pixel in the agent state texture
-  // to get the R and G (x and y position) values and passes that through
-  // for the fragment shader to draw those pixels
-  const renderAgentVertSrc =
-    `#version 300 es
-    precision mediump float;
-
-    in vec2 r_position;
-    in vec2 r_agentCoord;
-
-    precision mediump sampler2D;
-    precision mediump usampler2D;
-
-    uniform usampler2D agentTex;
-    uniform sampler2D agentCol;
-
-    out vec4 col;
-
-    void main(void)
-    {
-        // get the r & g (x & y positions) value of pixels in agentTex
-        uvec4 agent = texture(agentTex, r_agentCoord);
-        float v = uintBitsToFloat(agent.w);
-
-        col = texture(agentCol, r_agentCoord);
-        //col = vec4(v * col.r, col.g, (1.0-v) * col.b, col.a);
-
-        float x = uintBitsToFloat(agent.x);
-        float y = uintBitsToFloat(agent.y);
-        gl_Position = vec4(2.0 * x - 1.0, 2.0 * y - 1.0, 0.0, 1.0);
-
-        gl_PointSize = ` +
-    config.preset.pointSize.toFixed(2) +
-    `;
-    }`;
-
-  const renderAgentFragSrc = `#version 300 es
-    precision mediump float;
-    precision mediump int;
-    precision mediump sampler2D;
-
-    in vec4 col;
-
-    out vec4 color;
-
-    void main(void)
-    {
-        color = col;
-    }`;
-
-  const postProcessingVertSrc = `#version 300 es
-    precision mediump float;
-    in vec4 m_position;
-    out vec2 v_texCoord;
-
-    void main(void)
-    {
-        gl_Position = vec4(m_position.xy, 0.0, 1.0);
-        v_texCoord = m_position.pq;
-    }`;
-
-  const postProcessingFragSrc =
-    `#version 300 es
-    precision mediump float;
-    precision mediump sampler2D;
-
-    const float fadeSpeed = ` +
-    (config.preset.fadeSpeed / 255.0).toFixed(7) +
-    `;
-    const float width = ` +
-    config.canvas.width.toFixed(1) +
-    `;
-    const float height = ` +
-    config.canvas.height.toFixed(1) +
-    `;
-
-    in vec2 v_texCoord;
-    uniform sampler2D renderTex;
-
-    out vec4 color;
-
-    void main(void)
-    {
-        vec4 sum = vec4(0.0, 0.0, 0.0, 0.0);
-
-        // 3x3 blur
-        for (float offsetX = -1.0/width; offsetX <= 1.0/width; offsetX += 1.0/width)
-        {
-            for (float offsetY = -1.0/height; offsetY <= 1.0/height; offsetY += 1.0/height)
-            {
-                sum += texture(renderTex, v_texCoord + vec2(offsetX, offsetY));
-            }
-        }
-	      vec4 blurredCol = sum / 9.0;
-
-        color = blurredCol;
-
-        // Fade each trailing agent pixel out over time
-        color = color - fadeSpeed;
-    }`;
-
-  const moveAgentProg = compileShaders(gl, moveAgentVertSrc, moveAgentFragSrc);
-  gl.useProgram(moveAgentProg);
-  const pMoveAgentAgentTex = gl.getUniformLocation(moveAgentProg, "agentTex");
-  gl.uniform1i(pMoveAgentAgentTex, 0);
-  const pMoveAgentRenderTex = gl.getUniformLocation(moveAgentProg, "renderTex");
-  gl.uniform1i(pMoveAgentRenderTex, 1);
-
-  const renderAgentProg = compileShaders(
+  const moveAgent = buildProgram(
     gl,
-    renderAgentVertSrc,
-    renderAgentFragSrc
+    shaders.moveAgentVert,
+    shaders.moveAgentFrag
   );
-  gl.useProgram(renderAgentProg);
-  const pRenderAgentAgentTex = gl.getUniformLocation(
-    renderAgentProg,
-    "agentTex"
-  );
-  gl.uniform1i(pRenderAgentAgentTex, 0);
-  const pRenderAgentAgentColor = gl.getUniformLocation(
-    renderAgentProg,
-    "agentCol"
-  );
-  gl.uniform1i(pRenderAgentAgentColor, 1);
-
-  const postProcessingProg = compileShaders(
+  const renderAgent = buildProgram(
     gl,
-    postProcessingVertSrc,
-    postProcessingFragSrc
+    shaders.renderAgentVert,
+    shaders.renderAgentFrag
   );
-  gl.useProgram(postProcessingProg);
-  const pPostProcessingRenderTex = gl.getUniformLocation(
-    postProcessingProg,
-    "renderTex"
+  const postProcessing = buildProgram(
+    gl,
+    shaders.postProcessingVert,
+    shaders.postProcessingFrag
   );
-  gl.uniform1i(pPostProcessingRenderTex, 0);
-
-  gl.useProgram(null);
-
   return {
-    moveAgentProg: moveAgentProg,
-    renderAgentProg: renderAgentProg,
-    postProcessingProg: postProcessingProg,
+    moveAgent,
+    renderAgent,
+    postProcessing,
   };
 }
 
-function compileShaders(gl, vertSrc, fragSrc) {
+function buildProgram(gl, vertSrc, fragSrc) {
+  // compile shaders and link to new program
   const vs = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vs, vertSrc);
   gl.compileShader(vs);
@@ -399,11 +130,53 @@ function compileShaders(gl, vertSrc, fragSrc) {
   gl.attachShader(prog, vs);
   gl.attachShader(prog, fs);
   gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+    console.error(gl.getProgramInfoLog(prog));
+
+  // get uniforms
+  var uniformCount = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS);
+  var uniforms = {};
+  for (let i = 0; i < uniformCount; i++) {
+    var uniformName = gl.getActiveUniform(prog, i).name;
+    uniforms[uniformName] = gl.getUniformLocation(prog, uniformName);
+  }
 
   gl.deleteShader(vs);
   gl.deleteShader(fs);
+  return {
+    program: prog,
+    uniforms: uniforms,
+    use: function () {
+      gl.useProgram(this.program);
+    },
+  };
+}
 
-  return prog;
+function setupUniforms(gl, config, shaders) {
+  // moveAgent
+  shaders.moveAgent.use();
+  let mvUni = shaders.moveAgent.uniforms;
+  gl.uniform1i(mvUni.agentTex, 0);
+  gl.uniform1i(mvUni.renderTex, 1);
+  gl.uniform1f(mvUni.width, config.canvas.width);
+  gl.uniform1f(mvUni.height, config.canvas.height);
+
+  // renderAgent
+  shaders.renderAgent.use();
+  let raUni = shaders.renderAgent.uniforms;
+  gl.uniform1i(raUni.agentTex, 0);
+  gl.uniform1i(raUni.agentCol, 1);
+  gl.uniform1f(raUni.pointSize, config.preset.pointSize);
+
+  // postprocessing
+  shaders.postProcessing.use();
+  let ppUni = shaders.postProcessing.uniforms;
+  gl.uniform1i(ppUni.renderTex, 0);
+  gl.uniform1f(ppUni.fadeSpeed, config.preset.fadeSpeed / 255.0);
+  gl.uniform1f(ppUni.width, config.canvas.width);
+  gl.uniform1f(ppUni.height, config.canvas.width);
+
+  gl.useProgram(null);
 }
 
 function setupAgentControl(gl, config, shaders) {
@@ -428,14 +201,16 @@ function setupAgentControl(gl, config, shaders) {
   gl.useProgram(null);
 
   // ---------- VERTEX BUFFERS ----------
-
-  var m_position = gl.getAttribLocation(shaders.moveAgentProg, "m_position");
+  var m_position = gl.getAttribLocation(
+    shaders.moveAgent.program,
+    "m_position"
+  );
   var r_agentCoord = gl.getAttribLocation(
-    shaders.renderAgentProg,
+    shaders.renderAgent.program,
     "r_agentCoord"
   );
   var m_position_postprocess = gl.getAttribLocation(
-    shaders.postProcessingProg,
+    shaders.postProcessing.program,
     "m_position"
   );
 
@@ -498,6 +273,7 @@ function setupAgentControl(gl, config, shaders) {
     if (deltaTime > targetInterval) {
       then = now - (deltaTime % targetInterval);
 
+      updateUniforms(gl, config, SHADERS);
       render(ping, gl, SHADERS, FRAME_BUFFERS, TEXTURES);
       ping = !ping;
     }
@@ -607,6 +383,24 @@ function createTextures(gl, agentData, agentColorData) {
   };
 }
 
+function updateUniforms(gl, config, shaders) {
+  // moveAgnet
+  shaders.moveAgent.use();
+  let mvUni = shaders.moveAgent.uniforms;
+  gl.uniform1f(
+    mvUni.maxSpeed,
+    config.preset.maxSpeed.value / config.canvas.width
+  );
+  gl.uniform1f(mvUni.turnSpeed, config.preset.turnSpeed.value);
+  gl.uniform1f(mvUni.sensorRadius, config.sensorRadius / config.canvas.width);
+  gl.uniform1f(
+    mvUni.sensorOffsetDistance,
+    config.preset.sensorOffsetDistance.value / config.canvas.width
+  );
+  gl.uniform1f(mvUni.sensorAngle, config.preset.sensorAngle.value);
+  gl.uniform1f(mvUni.randomWeight, 0.5);
+}
+
 function render(ping, gl, shaders, frameBuffers, textures) {
   /*
     Ping-pong buffer: Alternate between agentTex & agentTexSwap,
@@ -619,7 +413,7 @@ function render(ping, gl, shaders, frameBuffers, textures) {
   // Mobile rendering fails here
 
   gl.viewport(0, 0, textures.agentTextureLength, textures.agentTextureLength);
-  gl.useProgram(shaders.moveAgentProg);
+  shaders.moveAgent.use();
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.agentFramebuffer);
   gl.framebufferTexture2D(
@@ -642,14 +436,14 @@ function render(ping, gl, shaders, frameBuffers, textures) {
 
   //var pixels = new Uint32Array(textures.agentTextureLength * textures.agentTextureLength * 16);
   //gl.readPixels(0, 0, textures.agentTextureLength, textures.agentTextureLength, gl.RGBA_INTEGER, gl.UNSIGNED_INT, pixels);
-  //console.log(pixels);
 
   // --------------------------------------
 
   // ------- AGENT RENDERING -------
   gl.viewport(0, 0, config.canvas.width, config.canvas.height);
   // Render to the render-texture swap
-  gl.useProgram(shaders.renderAgentProg);
+  //gl.useProgram(shaders.renderAgentProg);
+  shaders.renderAgent.use();
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.postProcessingFrameBuffer);
   gl.framebufferTexture2D(
     gl.FRAMEBUFFER,
@@ -676,7 +470,8 @@ function render(ping, gl, shaders, frameBuffers, textures) {
     0
   );
 
-  gl.useProgram(shaders.postProcessingProg);
+  //gl.useProgram(shaders.postProcessingProg);
+  shaders.postProcessing.use();
 
   // set texture UNIT 0 to be the render/renderswap
   gl.activeTexture(gl.TEXTURE0 + 0);
@@ -722,6 +517,8 @@ function shutdown() {
   GL_CONTEXT.deleteTexture(TEXTURES.agentColor);
   GL_CONTEXT.deleteTexture(TEXTURES.renderTex);
   GL_CONTEXT.deleteTexture(TEXTURES.renderTex_);
+
+  gl.getExtension("WEBGL_lose_context").loseContext();
 }
 
 export { init, shutdown };

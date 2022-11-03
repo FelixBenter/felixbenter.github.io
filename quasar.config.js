@@ -42,7 +42,7 @@ module.exports = configure(function (/* ctx */) {
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
-      "roboto-font", // optional, you are not bound to it
+      //"roboto-font", // optional, you are not bound to it
       "material-icons", // optional, you are not bound to it
     ],
 
@@ -86,7 +86,7 @@ module.exports = configure(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
       config: {
-        dark: true,
+        dark: false,
       },
 
       // iconSet: 'material-icons', // Quasar icon set

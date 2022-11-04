@@ -21,6 +21,8 @@ uniform float sensorOffsetDistance;
 uniform float sensorAngle;
 uniform float randomWeight;
 
+uniform float acceleration;
+
 in vec2 v_texCoord;
 
 const float PI = 3.141;
@@ -71,11 +73,9 @@ void main(void)
     float r = uintBitsToFloat(agent.z);
     float v = uintBitsToFloat(agent.w);
 
-    float aspectRatioInv = height/width;
-
     // move agent along current path
-    x += cos(r) * v * maxSpeed * aspectRatioInv;
-    y += sin(r) * v * maxSpeed;
+    x += cos(r) * v * (1.0/width);
+    y += sin(r) * v * (1.0/height);
 
     // check boundaries and reflect angle if hit
     if ( x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0 )
@@ -110,7 +110,11 @@ void main(void)
         r += turnSpeed + ((pseudoRandomWeight-0.5) * turnSpeed); // turn right
     }
 
-    v = max(max(forwardReading, max(leftReading, rightReading)) * 8.0, 0.1);
+    v = max(max(forwardReading, max(leftReading, rightReading)) * acceleration, 0.1);
+
+    //v = max(max(forwardReading, max(leftReading, rightReading)) * acceleration, 0.1);
+    //v += ((forwardReading - 0.5) / 50.0) * acceleration;
+    v = min(v, maxSpeed);
 
     uint x_ = floatBitsToUint(x);
     uint y_ = floatBitsToUint(y);

@@ -387,10 +387,7 @@ function updateUniforms(gl, config, shaders) {
   // moveAgnet
   shaders.moveAgent.use();
   let mvUni = shaders.moveAgent.uniforms;
-  gl.uniform1f(
-    mvUni.maxSpeed,
-    config.preset.maxSpeed.value / config.canvas.width
-  );
+  gl.uniform1f(mvUni.maxSpeed, config.preset.maxSpeed.value);
   gl.uniform1f(mvUni.turnSpeed, config.preset.turnSpeed.value);
 
   gl.uniform1f(mvUni.sensorWidth, config.sensorRadius / config.canvas.width);
@@ -408,6 +405,7 @@ function updateUniforms(gl, config, shaders) {
   );
   gl.uniform1f(mvUni.sensorAngle, config.preset.sensorAngle.value);
   gl.uniform1f(mvUni.randomWeight, 0.1);
+  gl.uniform1f(mvUni.acceleration, config.preset.acceleration.value);
 }
 
 function render(ping, gl, shaders, frameBuffers, textures) {
@@ -451,7 +449,6 @@ function render(ping, gl, shaders, frameBuffers, textures) {
   // ------- AGENT RENDERING -------
   gl.viewport(0, 0, config.canvas.width, config.canvas.height);
   // Render to the render-texture swap
-  //gl.useProgram(shaders.renderAgentProg);
   shaders.renderAgent.use();
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers.postProcessingFrameBuffer);
   gl.framebufferTexture2D(
@@ -479,7 +476,6 @@ function render(ping, gl, shaders, frameBuffers, textures) {
     0
   );
 
-  //gl.useProgram(shaders.postProcessingProg);
   shaders.postProcessing.use();
 
   // set texture UNIT 0 to be the render/renderswap

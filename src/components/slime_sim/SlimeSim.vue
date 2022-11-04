@@ -1,11 +1,6 @@
 <template>
-  <canvas
-    class="bg-black"
-    id="vis"
-    ref="visCanvas"
-    style="width: 2020px; height: 1080px"
-  ></canvas>
-  <q-card class="overlay" style="width: 250px" v-if="false">
+  <canvas class="bg-black" id="vis" ref="visCanvas"></canvas>
+  <q-card class="overlay" square flat bordered style="width: 250px">
     <q-card-actions>
       <q-select
         v-model="presetSelection"
@@ -18,9 +13,7 @@
         :key="param"
         style="width: 100%"
       >
-        <q-badge color="secondary"
-          >{{ params[param].label }}: {{ params[param].value }}</q-badge
-        >
+        {{ params[param].label }}: {{ params[param].value }}
         <q-slider
           v-model="params[param].value"
           :min="params[param].min"
@@ -36,7 +29,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import * as vis from "./SlimeSim";
 import { createNoise2D } from "simplex-noise";
 export default defineComponent({
@@ -93,7 +86,7 @@ export default defineComponent({
             }
             return { agents: agents, colors: agentColorData };
           },
-          pointSize: 2.0,
+          pointSize: 1.0,
           fadeSpeed: 10.0,
         },
         {
@@ -133,7 +126,7 @@ export default defineComponent({
       ],
       params: {
         turnSpeed: { value: 0.2, min: 0.1, max: 1.0, label: "Turn Speed" },
-        maxSpeed: { value: 4.0, min: 2.0, max: 10.0, label: "Max Speed" },
+        maxSpeed: { value: 2.0, min: 0.0, max: 5.0, label: "Max Speed" },
         sensorOffsetDistance: {
           value: 40.0,
           min: 10.0,
@@ -141,6 +134,12 @@ export default defineComponent({
           label: "Sensor Range",
         },
         sensorAngle: { value: 0.25, min: 0.1, max: 0.6, label: "Sensor Angle" },
+        acceleration: {
+          value: 2.0,
+          min: 1.0,
+          max: 10.0,
+          label: "Acceleration",
+        },
       },
     };
   },

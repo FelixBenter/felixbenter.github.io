@@ -59,7 +59,14 @@
           box-sizing: border-box;
         "
         :src="markdown"
+        class="focused"
       />
+      <div class="text-caption">
+        Excerpt from the agent movement shader: Given the agent position and
+        sensor angle and offset, returns a normalised reading of the pixel
+        values in the area around a sensor.
+      </div>
+
       <div class="text-h6">Dynamic Agent Speed</div>
       <q-img
         src="portfolio/slime_gif_1.gif"
@@ -68,11 +75,11 @@
       <p>
         A feature which I wanted to focus on, which I had not seen much of
         elsewhere, was giving the agents dynamic speeds based on their
-        surroundings. Here, the agents speed is proportional to the brightness
-        of the readings around them. This causes them to form "highways" of
-        high-speed lanes with many agents moving through, and regions agents
-        slowing moving into empty territory. Here, the agent's speed also
-        affects their colour.
+        surroundings. Here, an agent's acceleration is proportional to the
+        brightness of the readings around it. This causes them to form
+        "highways" of high-speed lanes with many agents moving through, and
+        regions agents slowing moving into empty territory. Here, the agent's
+        acceleration also affects their colour.
       </p>
       <p>
         I doubt that this feature is scientifically accurate to the real-life
@@ -135,5 +142,10 @@ float sense(float x, float y, float r, float offset)
   position: absolute;
   left: 24px;
   right: 24px;
+  background: white;
+}
+.q-markdown--line-numbers-wrapper {
+  background: white;
+  color: $primary;
 }
 </style>

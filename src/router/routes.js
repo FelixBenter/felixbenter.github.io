@@ -13,6 +13,11 @@ const routes = [
         path: "/physarum",
         component: () => import("pages/PhysarumPage.vue"),
       },
+      {
+        name: "Blender DCX Importer",
+        path: "/dcximporter",
+        component: () => import("pages/DCXImporterPage.vue"),
+      },
     ],
   },
   {

@@ -1,6 +1,6 @@
 import * as shaders from "./shaders";
 const SENSOR_RADIUS = 2.0; // in pixels
-const TARGET_FPS = 30;
+const TARGET_FPS = 60;
 var DO_RENDER;
 
 const config = {
@@ -392,13 +392,22 @@ function updateUniforms(gl, config, shaders) {
     config.preset.maxSpeed.value / config.canvas.width
   );
   gl.uniform1f(mvUni.turnSpeed, config.preset.turnSpeed.value);
-  gl.uniform1f(mvUni.sensorRadius, config.sensorRadius / config.canvas.width);
+
+  gl.uniform1f(mvUni.sensorWidth, config.sensorRadius / config.canvas.width);
+  gl.uniform1f(mvUni.sensorHeight, config.sensorRadius / config.canvas.height);
+
+  // for normalising the sensor reading
+  // square around sensor, each pixel has 3 values in RGB maxxing out at 1.0
+  var sideLength = 2.0 * config.sensorRadius + 1.0;
+  var maxPossibleReading = sideLength * sideLength * 3.0;
+  gl.uniform1f(mvUni.maxPossibleReading, maxPossibleReading);
+
   gl.uniform1f(
     mvUni.sensorOffsetDistance,
     config.preset.sensorOffsetDistance.value / config.canvas.width
   );
   gl.uniform1f(mvUni.sensorAngle, config.preset.sensorAngle.value);
-  gl.uniform1f(mvUni.randomWeight, 0.5);
+  gl.uniform1f(mvUni.randomWeight, 0.1);
 }
 
 function render(ping, gl, shaders, frameBuffers, textures) {

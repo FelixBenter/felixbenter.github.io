@@ -2,7 +2,7 @@
   "name": "felix-website",
   "version": "0.0.1",
   "description": "A Quasar Project",
-  "productName": "Felix's Personal Website",
+  "productName": "Felix Benter",
   "author": "Felix Benter <felixbenter1@gmail.com>",
   "private": true,
   "scripts": {
@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
+    "@quasar/quasar-ui-qmarkdown": "^2.0.0-beta.7",
     "quasar": "^2.6.0",
+    "simplex-noise": "^4.0.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",
     "vuex": "^4.0.1"

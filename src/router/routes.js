@@ -2,7 +2,18 @@ const routes = [
   {
     path: "/",
     component: () => import("pages/HomePage.vue"),
-    children: [],
+    children: [
+      {
+        name: "Portfolio",
+        path: "/",
+        component: () => import("pages/PortfolioPage.vue"),
+      },
+      {
+        name: "Physarum",
+        path: "/physarum",
+        component: () => import("pages/PhysarumPage.vue"),
+      },
+    ],
   },
   {
     path: "/demos",

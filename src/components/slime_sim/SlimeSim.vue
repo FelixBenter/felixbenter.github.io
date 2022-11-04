@@ -1,10 +1,11 @@
 <template>
   <canvas
-    class="bg-black full-width full-height"
+    class="bg-black"
     id="vis"
     ref="visCanvas"
+    style="width: 2020px; height: 1080px"
   ></canvas>
-  <q-card class="overlay" style="width: 250px">
+  <q-card class="overlay" style="width: 250px" v-if="false">
     <q-card-actions>
       <q-select
         v-model="presetSelection"
@@ -37,6 +38,7 @@
 <script>
 import { defineComponent, ref } from "vue";
 import * as vis from "./SlimeSim";
+import { createNoise2D } from "simplex-noise";
 export default defineComponent({
   name: "SlimeSim",
   components: {},
@@ -91,43 +93,51 @@ export default defineComponent({
             }
             return { agents: agents, colors: agentColorData };
           },
-          pointSize: 1.0,
+          pointSize: 2.0,
           fadeSpeed: 10.0,
         },
         {
-          label: "Orbiting",
+          label: "Perlin Noise",
           createAgents: function () {
             let agents = [];
             let agentColorData = [];
+            var THRESHOLD = -0.95;
+            const noise2D = createNoise2D();
 
             for (let i = 0; i < NUM_AGENTS; i++) {
-              agents.push({
-                x: 0.0,
-                y: 0.0,
-                rot: (
-                  Math.random() * (0.0 - 2 * Math.PI) +
-                  2 * Math.PI
-                ).toFixed(2),
-              });
+              var x = 2 * (Math.random() - 0.5);
+              var y = 2 * (Math.random() - 0.5);
+              var noise = noise2D(x, y);
 
-              agentColorData.push(255);
-              agentColorData.push(255);
-              agentColorData.push(255);
-              agentColorData.push(255);
+              if (noise > THRESHOLD) {
+                agents.push({
+                  x: x,
+                  y: y,
+                  rot: (
+                    Math.random() * (0.0 - 2 * Math.PI) +
+                    2 * Math.PI
+                  ).toFixed(2),
+                });
+
+                agentColorData.push(255);
+                agentColorData.push(255);
+                agentColorData.push(255);
+                agentColorData.push(255);
+              }
             }
             return { agents: agents, colors: agentColorData };
           },
-          pointSize: 0.1,
+          pointSize: 1.0,
           fadeSpeed: 10.0,
         },
       ],
       params: {
-        turnSpeed: { value: 0.25, min: 0.1, max: 1.0, label: "Turn Speed" },
+        turnSpeed: { value: 0.2, min: 0.1, max: 1.0, label: "Turn Speed" },
         maxSpeed: { value: 4.0, min: 2.0, max: 10.0, label: "Max Speed" },
         sensorOffsetDistance: {
-          value: 20.0,
+          value: 40.0,
           min: 10.0,
-          max: 30.0,
+          max: 100.0,
           label: "Sensor Range",
         },
         sensorAngle: { value: 0.25, min: 0.1, max: 0.6, label: "Sensor Angle" },

@@ -24,6 +24,9 @@ void main(void)
   float v = uintBitsToFloat(agent.w);
 
   col = texture(agentCol, r_agentCoord);
+  col.r = col.r * v;
+  col.g = col.g * (1.0 - v) - 0.1;
+  col.b = 1.0;
 
   float x = uintBitsToFloat(agent.x);
   float y = uintBitsToFloat(agent.y);

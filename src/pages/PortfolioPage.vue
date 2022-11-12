@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <div class="q-mt-none q-mb-lg">
+    <div class="q-mt-none q-mb-none">
       <div class="text-h4">Current Work</div>
       <q-separator />
       <div class="q-gutter-y-lg">
@@ -26,30 +26,27 @@
           :tags="item.tags"
           :actions="item.actions"
         />
-        <div
-          class="bg-white text-primary q-pa-lg row justify-center q-gutter-sm"
-          style="
-            position: absolute;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            margin-top: 50px;
-          "
-        >
-          <q-btn
-            v-for="link in links"
-            :key="link"
-            class="row"
-            :class="$q.platform.is.mobile ? 'full-width' : ''"
-            square
-            outline
-            color="primary"
-            :label="link.title"
-            :href="link.href"
-          />
-        </div>
+        <q-card square flat bordered>
+          <q-card-section>
+            <q-card-section>
+              <q-card-actions
+                class="q-px-none row justify-center q-gutter-y-sm"
+              >
+                <q-btn
+                  v-for="link in links"
+                  :key="link"
+                  class="row"
+                  :class="$q.platform.is.mobile ? 'full-width' : ''"
+                  square
+                  outline
+                  color="primary"
+                  :label="link.title"
+                  :href="link.href"
+                />
+              </q-card-actions>
+            </q-card-section>
+          </q-card-section>
+        </q-card>
       </div>
     </div>
   </q-page>

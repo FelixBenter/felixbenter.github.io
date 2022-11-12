@@ -16,6 +16,15 @@
         class="col-6"
         style="min-height: 300px"
       >
+        <template v-slot:navigation-icon="{ active, onClick }">
+          <q-btn
+            square
+            outline
+            :color="active ? 'white' : 'primary'"
+            @click="onClick"
+            icon=""
+          />
+        </template>
         <q-carousel-slide
           class="column no-wrap"
           v-for="(slide, i) in slides"

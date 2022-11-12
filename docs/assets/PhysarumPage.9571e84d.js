@@ -1,4 +1,4 @@
-import{Q as r,a as n}from"./index.esm.2398e1a7.js";import{Q as l}from"./QPage.94303b97.js";import{_ as c,m as h,q as d,s as m,t as u,u as g,A as e,X as s,v as o,z as a}from"./index.0f21dbbe.js";import"./QBtn.ccb775db.js";import"./dom.80c29ecc.js";import"./position-engine.d42a7399.js";import"./selection.4a3952cd.js";import"./scroll.65d1531b.js";const p=h({name:"PhysarumPage",components:{QMarkdown:r},data(){return{split:60,markdown:`\`\`\`
+import{Q as r,a as n}from"./index.esm.fc8ec233.js";import{Q as l}from"./QPage.3d4c43b0.js";import{_ as c,m as h,q as d,s as m,t as u,u as g,A as e,V as s,v as o,z as a}from"./index.8b455c03.js";import"./QBtn.077df2d9.js";import"./dom.3850c455.js";import"./position-engine.a0ceed01.js";import"./selection.faf2cea3.js";import"./scroll.c3e0b976.js";const p=h({name:"PhysarumPage",components:{QMarkdown:r},data(){return{split:60,markdown:`\`\`\`
 float sense(float x, float y, float r, float offset)
 {
     float sensorAngle = r + offset;

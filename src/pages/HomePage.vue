@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpr lfr">
+  <q-layout view="hHh lpr lFr">
     <q-header
       :bordered="windowTop != 0.0"
       class="bg-white text-primary"

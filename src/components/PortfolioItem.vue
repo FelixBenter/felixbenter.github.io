@@ -73,7 +73,7 @@
               :key="action.title"
               :label="action.title"
               v-on:click="action.click"
-            ></q-btn>
+            />
           </q-card-actions>
         </q-card-section>
       </q-card-section>

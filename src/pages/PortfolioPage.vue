@@ -4,7 +4,13 @@
       <div class="text-h4">Current Work</div>
       <q-separator />
       <div class="q-gutter-y-lg">
-        <WorkItem />
+        <WorkItem
+          v-for="item in workItems"
+          :key="item"
+          :title="item.title"
+          :period="item.period"
+          :points="item.points"
+        />
       </div>
       <div class="text-h4">Personal Projects</div>
       <q-separator />
@@ -20,6 +26,30 @@
           :tags="item.tags"
           :actions="item.actions"
         />
+        <div
+          class="bg-white text-primary q-pa-lg row justify-center q-gutter-sm"
+          style="
+            position: absolute;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            margin-top: 50px;
+          "
+        >
+          <q-btn
+            v-for="link in links"
+            :key="link"
+            class="row"
+            :class="$q.platform.is.mobile ? 'full-width' : ''"
+            square
+            outline
+            color="primary"
+            :label="link.title"
+            :href="link.href"
+          />
+        </div>
       </div>
     </div>
   </q-page>
@@ -104,6 +134,37 @@ export default defineComponent({
             },
           ],
           slide: 0,
+        },
+      ],
+      workItems: [
+        {
+          title: "Junior Software Developer at Pairtree Intelligence",
+          period: "Feb 2020 - present",
+          points: [
+            "Developed and maintained data feed pipelines and backend structure using C# and PostgreSQL.",
+            "Led the development of customer facing UI components involving Vue (Quasar), Leaflet, Axios and Git.",
+            "Built advanced geospatial analysis and visualisation features using postGIS, GDAL and Leaflet.",
+            "Created and configured build pipelines using Jenkins.",
+            "Collaborated with team members and worked closely with clients to refine solutions based on evolving requirements.",
+          ],
+        },
+      ],
+      links: [
+        {
+          title: "Email",
+          href: "mailto:felixbenter1@gmail.com",
+        },
+        {
+          title: "LinkedIn",
+          href: "https://www.linkedin.com/in/felix-benter-8a7157191/",
+        },
+        {
+          title: "Github",
+          href: "https://github.com/FelixBenter",
+        },
+        {
+          title: "resume",
+          href: "Resume_2020.pdf",
         },
       ],
     };

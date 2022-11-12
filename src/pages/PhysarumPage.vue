@@ -42,7 +42,7 @@
       <p>
         The agent then deposits some material onto the pixel it is currently on,
         which increases that pixel's brightness. The entire trail map then
-        "decays" (is darkened slightly) and dissipated (blurred) using a simple
+        decays (is darkened slightly) and dissipates (blurred) using a simple
         3x3 blur algorithm.
       </p>
 

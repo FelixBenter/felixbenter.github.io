@@ -51,7 +51,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.presetSelection = this.presets[0];
+    this.presetSelection = this.presets[1];
   },
   data() {
     const NUM_AGENTS = 2 ** (2 * 8);
@@ -88,6 +88,7 @@ export default defineComponent({
           },
           pointSize: 1.0,
           fadeSpeed: 10.0,
+          randomWeight: 0.1,
         },
         {
           label: "Perlin Noise",
@@ -101,17 +102,18 @@ export default defineComponent({
               var x = 2 * (Math.random() - 0.5);
               var y = 2 * (Math.random() - 0.5);
               var noise = noise2D(x, y);
+              var rot = (
+                Math.random() * (0.0 - 2 * Math.PI) +
+                2 * Math.PI
+              ).toFixed(2);
+              rot = 0.0;
 
               if (noise > THRESHOLD) {
                 agents.push({
-                  x: x,
-                  y: y,
-                  rot: (
-                    Math.random() * (0.0 - 2 * Math.PI) +
-                    2 * Math.PI
-                  ).toFixed(2),
+                  x,
+                  y,
+                  rot,
                 });
-
                 agentColorData.push(255);
                 agentColorData.push(255);
                 agentColorData.push(255);
@@ -120,8 +122,9 @@ export default defineComponent({
             }
             return { agents: agents, colors: agentColorData };
           },
-          pointSize: 1.0,
-          fadeSpeed: 10.0,
+          pointSize: 0.1,
+          fadeSpeed: 8.0,
+          randomWeight: 0.1,
         },
       ],
       params: {

@@ -1,7 +1,14 @@
 <template>
   <q-page>
     <div class="q-mt-none q-mb-lg">
-      SOME STUFF
+      <div class="text-h4">Current Work</div>
+      <q-separator />
+      <div class="q-gutter-y-lg">
+        <WorkItem />
+      </div>
+      <div class="text-h4">Personal Projects</div>
+      <q-separator />
+      <br />
       <div class="q-gutter-y-lg">
         <PortfolioItem
           v-for="item in portfolioItems"
@@ -20,11 +27,14 @@
 
 <script>
 import { defineComponent, ref } from "vue";
-import PortfolioItem from "./PortfolioItem.vue";
+import PortfolioItem from "../components/PortfolioItem.vue";
+import WorkItem from "../components/WorkItem.vue";
+
 export default defineComponent({
   name: "PortfolioPage",
   components: {
     PortfolioItem,
+    WorkItem,
   },
   data() {
     return {

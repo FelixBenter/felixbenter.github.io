@@ -1,4 +1,4 @@
-import{Q as i,a as o}from"./index.esm.7420b775.js";import{Q as s}from"./QPage.d83ce4b9.js";import{_ as d,m as l,q as _,s as m,t as p,u as f,z as e,v as a,X as r}from"./index.47c864f7.js";import"./QBtn.ace210e5.js";import"./dom.cf56c019.js";import"./position-engine.25adee15.js";import"./selection.3861cc93.js";import"./scroll.95183e25.js";const c=l({name:"PhysarumPage",components:{QMarkdown:i},data(){return{split:60,markdown:`\`\`\`
+import{Q as i,a as o}from"./index.esm.2398e1a7.js";import{Q as s}from"./QPage.94303b97.js";import{_ as d,m as l,q as _,s as m,t as p,u as f,A as e,v as a,X as r}from"./index.0f21dbbe.js";import"./QBtn.ccb775db.js";import"./dom.80c29ecc.js";import"./position-engine.d42a7399.js";import"./selection.4a3952cd.js";import"./scroll.65d1531b.js";const c=l({name:"PhysarumPage",components:{QMarkdown:i},data(){return{split:60,markdown:`\`\`\`
 def transform_bone_and_siblings(bone_index, parent_matrix):
   while bone_index != -1:
       flver_bone = flver_data.bones[bone_index]

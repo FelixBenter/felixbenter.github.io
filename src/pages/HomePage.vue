@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh lpr lfr">
     <q-header
-      bordered
+      :bordered="windowTop != 0.0"
       class="bg-white text-primary"
       style="
         max-width: 800px;
@@ -12,13 +12,12 @@
       "
     >
       <q-toolbar class="q-pa-none">
-        <q-toolbar-title v-if="$route.path != '/'" class="text-weight-medium">
-          <router-link to="/" class="text-primary">Felix Benter</router-link>
+        <q-toolbar-title class="text-weight-medium">
+          <router-link v-if="$route.path != '/'" to="/" class="text-primary"
+            >Felix Benter</router-link
+          >
+          <div v-if="$route.path == '/'">Felix Benter</div>
         </q-toolbar-title>
-        <q-toolbar-title v-if="$route.path == '/'" class="text-weight-medium">
-          Felix Benter
-        </q-toolbar-title>
-
         <q-item>
           <q-item-section class="text-caption text-weight-light">
             <q-item-label>
@@ -71,7 +70,23 @@ export default defineComponent({
   name: "ResumePage",
   components: {},
   data() {
-    return {};
+    return {
+      windowTop: 0.0,
+    };
+  },
+  mounted() {
+    window.addEventListener("scroll", this.onScroll);
+  },
+  beforeUnmount() {
+    window.removeEventListener("scroll", this.onScroll);
+  },
+  methods: {
+    onScroll(e) {
+      this.windowTop = window.top.scrollY;
+    },
+  },
+  watch: {
+    windowTop() {},
   },
 });
 </script>

@@ -6,11 +6,12 @@
     >
       <q-carousel
         v-model="slide"
-        arrows
         swipeable
         animated
+        :navigation="slides.length > 1"
         transition-prev="slide-right"
         transition-next="slide-left"
+        control-type="flat"
         control-color="accent"
         class="col-6"
         style="min-height: 300px"
@@ -83,7 +84,7 @@
 <script>
 import { defineComponent } from "vue";
 export default defineComponent({
-  name: "PortfolioPage",
+  name: "PortfolioItem",
 
   components: {},
   methods: {},

@@ -1,6 +1,6 @@
 import * as shaders from "./shaders";
 const SENSOR_RADIUS = 2.0; // in pixels
-const TARGET_FPS = 60;
+const TARGET_FPS = 30;
 var DO_RENDER;
 
 const config = {
@@ -404,7 +404,7 @@ function updateUniforms(gl, config, shaders) {
     config.preset.sensorOffsetDistance.value / config.canvas.width
   );
   gl.uniform1f(mvUni.sensorAngle, config.preset.sensorAngle.value);
-  gl.uniform1f(mvUni.randomWeight, 0.1);
+  gl.uniform1f(mvUni.randomWeight, config.preset.randomWeight);
   gl.uniform1f(mvUni.acceleration, config.preset.acceleration.value);
 }
 

@@ -21,7 +21,7 @@
         </p>
       </div>
       <p>
-        Physarum Polycephalum is a single-cell organism which, within large
+        Physarum Polycephalum is a single-celled organism which, within large
         networks, can together exhibit many complex and intelligent locomotive
         behaviours. The project involved creating webGL shaders to simulate
         100,000s of 'agents', each with a set of simple navigational rules, on

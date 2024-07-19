@@ -42,7 +42,7 @@ export default defineComponent({
       } catch {}
       var canvas = this.$refs.visCanvas;
       canvas.width = Math.round(window.innerWidth);
-      canvas.height = Math.round(window.innerHeight) - 50;
+      canvas.height = Math.round(window.innerHeight);
       let config = {
         ...newPreset,
         ...this.params,
@@ -86,59 +86,71 @@ export default defineComponent({
             }
             return { agents: agents, colors: agentColorData };
           },
-          pointSize: 1.0,
+          pointSize: 0.1,
           fadeSpeed: 10.0,
           randomWeight: 0.1,
         },
         {
-          label: "Perlin Noise",
+          label: "Orbit",
           createAgents: function () {
             let agents = [];
             let agentColorData = [];
-            var THRESHOLD = -0.95;
-            const noise2D = createNoise2D();
 
+            let circleRadius = 0.4;
             for (let i = 0; i < NUM_AGENTS; i++) {
-              var x = 2 * (Math.random() - 0.5);
-              var y = 2 * (Math.random() - 0.5);
-              var noise = noise2D(x, y);
-              var rot = (
-                Math.random() * (0.0 - 2 * Math.PI) +
-                2 * Math.PI
-              ).toFixed(2);
-              rot = 0.0;
+              let theta = 2 * Math.PI * Math.random();
+              let radius = circleRadius * Math.sqrt(Math.random());
+              let posX = radius * Math.cos(theta);
+              let posY = radius * Math.sin(theta);
 
-              if (noise > THRESHOLD) {
-                agents.push({
-                  x,
-                  y,
-                  rot,
-                });
-                agentColorData.push(255);
-                agentColorData.push(255);
-                agentColorData.push(255);
-                agentColorData.push(255);
-              }
+              let angle = Math.atan2(-posY, -posX) + 0.5 * Math.PI;
+              angle += Math.random() * 0.1;
+
+              agents.push({
+                x: posX,
+                y: posY,
+                rot: angle.toFixed(2),
+              });
+
+              agentColorData.push(255);
+              agentColorData.push(255);
+              agentColorData.push(255);
+              agentColorData.push(255);
             }
             return { agents: agents, colors: agentColorData };
           },
           pointSize: 0.1,
           fadeSpeed: 8.0,
-          randomWeight: 0.1,
+          randomWeight: 0.3,
         },
       ],
       params: {
-        turnSpeed: { value: 0.2, min: 0.1, max: 1.0, label: "Turn Speed" },
-        maxSpeed: { value: 2.0, min: 0.0, max: 5.0, label: "Max Speed" },
+        turnSpeed: {
+          value: 0.1,
+          min: 0.1,
+          max: 1.0,
+          label: "Turn Speed",
+        },
+        maxSpeed: {
+          value: 2.0,
+          min: 0.0,
+          max: 5.0,
+          label: "Max Speed",
+        },
         sensorOffsetDistance: {
-          value: 40.0,
+          value: 1.0,
           min: 10.0,
           max: 100.0,
           label: "Sensor Range",
         },
-        sensorAngle: { value: 0.25, min: 0.1, max: 0.6, label: "Sensor Angle" },
+        sensorAngle: {
+          value: 0.8,
+          min: 0.1,
+          max: 0.6,
+          label: "Sensor Angle",
+        },
         acceleration: {
-          value: 2.0,
+          value: 5.0,
           min: 1.0,
           max: 10.0,
           label: "Acceleration",
@@ -153,6 +165,6 @@ export default defineComponent({
 .overlay {
   position: absolute;
   top: 20px;
-  left: 20px;
+  right: 20px;
 }
 </style>

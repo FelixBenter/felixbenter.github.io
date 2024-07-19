@@ -26,21 +26,26 @@
           />
         </template>
         <q-carousel-slide
-          class="column no-wrap"
+          class="column no-wrap q-pa-none"
           v-for="(slide, i) in slides"
           :key="i"
           :name="i"
           :img-src="slide.res"
+          style="background-color: black"
         >
           <div
             v-if="slide.type == 'video'"
             class="row fit justify-start items-center q-gutter-xs q-col-gutter no-wrap"
           >
-            <iframe
+            <video
+              ref="video"
+              style="width: 100%; height: 506px"
+              autoplay
+              loop
+              height="506"
               :src="slide.res"
-              frameBorder="0"
-              style="width: 100%; min-height: 400px"
-            ></iframe>
+              muted
+            ></video>
           </div>
         </q-carousel-slide>
       </q-carousel>
@@ -103,5 +108,6 @@ export default defineComponent({
       slide: 0,
     };
   },
+  mounted() {},
 });
 </script>

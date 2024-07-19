@@ -29,10 +29,14 @@
               <a
                 href="https://www.linkedin.com/in/felix-benter-8a7157191/"
                 class="text-primary"
+                target="_blank"
                 >LinkedIn</a
               >
               /
-              <a href="https://github.com/FelixBenter" class="text-primary"
+              <a
+                href="https://github.com/FelixBenter"
+                class="text-primary"
+                target="_blank"
                 >Github</a
               ></q-item-label
             >

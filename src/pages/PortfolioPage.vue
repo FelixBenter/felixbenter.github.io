@@ -42,6 +42,7 @@
                   color="primary"
                   :label="link.title"
                   :href="link.href"
+                  target="_blank"
                 />
               </q-card-actions>
             </q-card-section>
@@ -71,10 +72,15 @@ export default defineComponent({
           subtitle:
             "A small implementation of Physarum Polycephalum movement in WebGL",
           description: `
-          Physarum Polycephalum is a single-cell organism which, within large networks, can together exhibit many complex and intelligent locomotive behaviours.
+          Physarum Polycephalum is a single-celled organism which, within large networks, can together exhibit many complex and intelligent locomotive behaviours.
           The project involved creating webGL shaders to simulate 100,000s of 'agents', each with a set of simple navigational rules, on the GPU to create complex collective behaviour.
           `,
           slides: [
+            {
+              type: "video",
+              res: "portfolio/slime_vid_0.mp4",
+              caption: "",
+            },
             {
               type: "img",
               res: "portfolio/slime_img_0.png",
@@ -135,14 +141,15 @@ export default defineComponent({
       ],
       workItems: [
         {
-          title: "Junior Software Developer at Pairtree Intelligence",
-          period: "Feb 2020 - present",
+          title: "Software Developer at Pairtree Intelligence",
+          period: "Feb 2021 - present",
           points: [
             "Developed and maintained data feed pipelines and backend structure using C# and PostgreSQL.",
-            "Led the development of customer facing UI components involving Vue (Quasar), Leaflet, Axios and Git.",
+            "Led the development and transition to a new customer facing UI project involving Vue3 (Quasar) & Axios.",
+            "Developed and maintained internal & external APIs in a controller-service-repository pattern using .NET.",
             "Built advanced geospatial analysis and visualisation features using postGIS, GDAL and Leaflet.",
             "Created and configured build pipelines using Jenkins.",
-            "Collaborated with team members and worked closely with clients to refine solutions based on evolving requirements.",
+            "Collaborated with team members and worked closely with clients to refine solutions based on evolving requirements. Lead the development of multiple large projects with clients and developed large sections of e2e solutions, involve the Department of Primary Industries and Syngenta Australia.",
           ],
         },
       ],
@@ -161,7 +168,7 @@ export default defineComponent({
         },
         {
           title: "resume",
-          href: "Resume_2020.pdf",
+          href: "Resume_2024.pdf",
         },
       ],
     };

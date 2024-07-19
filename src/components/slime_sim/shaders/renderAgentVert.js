@@ -15,6 +15,10 @@ uniform usampler2D agentTex;
 uniform sampler2D agentCol;
 uniform float pointSize;
 
+const vec3 col1 = vec3(0.00, 0.22, 0.66);
+const vec3 col2 = vec3(0.61, 0.31, 0.59);
+const vec3 col3 = vec3(0.84, 0.01, 0.44);
+
 out vec4 col;
 
 void main(void)
@@ -24,9 +28,9 @@ void main(void)
   float v = uintBitsToFloat(agent.w);
 
   col = texture(agentCol, r_agentCoord);
-  col.r = col.r * v;
-  col.g = col.g * (1.0 - v) - 0.1;
-  col.b = 1.0;
+
+  col.rgb = mix(col1, col2, smoothstep(0.0, 0.5, v));
+  col.rgb = mix(col.rgb, col3, smoothstep(0.5, 1.0, v));
 
   float x = uintBitsToFloat(agent.x);
   float y = uintBitsToFloat(agent.y);

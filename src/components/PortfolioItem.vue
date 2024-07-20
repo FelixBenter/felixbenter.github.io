@@ -36,6 +36,7 @@
           <div
             v-if="slide.type == 'video'"
             class="row fit justify-start items-center q-gutter-xs q-col-gutter no-wrap"
+            style="overflow: hidden"
           >
             <video
               ref="video"

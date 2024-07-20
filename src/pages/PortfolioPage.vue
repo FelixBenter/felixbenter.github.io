@@ -26,28 +26,6 @@
           :tags="item.tags"
           :actions="item.actions"
         />
-        <q-card square flat bordered>
-          <q-card-section>
-            <q-card-section>
-              <q-card-actions
-                class="q-px-none row justify-center q-gutter-y-sm"
-              >
-                <q-btn
-                  v-for="link in links"
-                  :key="link"
-                  class="row"
-                  :class="$q.platform.is.mobile ? 'full-width' : ''"
-                  square
-                  outline
-                  color="primary"
-                  :label="link.title"
-                  :href="link.href"
-                  target="_blank"
-                />
-              </q-card-actions>
-            </q-card-section>
-          </q-card-section>
-        </q-card>
       </div>
     </div>
   </q-page>
@@ -83,12 +61,12 @@ export default defineComponent({
             },
             {
               type: "img",
-              res: "portfolio/slime_img_0.png",
+              res: "portfolio/slime_img_0.webp",
               caption: "",
             },
             {
               type: "img",
-              res: "portfolio/slime_img_1.png",
+              res: "portfolio/slime_img_1.webp",
               caption: "",
             },
           ],
@@ -98,6 +76,15 @@ export default defineComponent({
               title: "Details",
               click: () => {
                 this.$router.push("/physarum");
+              },
+            },
+            {
+              title: "View source on Github",
+              click: () => {
+                window.open(
+                  "https://github.com/FelixBenter/felixbenter.github.io/tree/main/src/components/slime_sim",
+                  "_blank"
+                );
               },
             },
           ],
@@ -114,7 +101,7 @@ export default defineComponent({
           slides: [
             {
               type: "img",
-              res: "portfolio/dcximporter_img_0.png",
+              res: "portfolio/dcximporter_img_0.webp",
               caption: "",
             },
           ],
@@ -151,24 +138,6 @@ export default defineComponent({
             "Created and configured build pipelines using Jenkins.",
             "Collaborated with team members and worked closely with clients to refine solutions based on evolving requirements. Lead the development of multiple large projects with clients and developed large sections of e2e solutions, involve the Department of Primary Industries and Syngenta Australia.",
           ],
-        },
-      ],
-      links: [
-        {
-          title: "Email",
-          href: "mailto:felixbenter1@gmail.com",
-        },
-        {
-          title: "LinkedIn",
-          href: "https://www.linkedin.com/in/felix-benter-8a7157191/",
-        },
-        {
-          title: "Github",
-          href: "https://github.com/FelixBenter",
-        },
-        {
-          title: "resume",
-          href: "Resume_2024.pdf",
         },
       ],
     };

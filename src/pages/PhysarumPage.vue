@@ -9,12 +9,14 @@
           <a
             href="http://cargocollective.com/sagejenson/physarum"
             class="text-accent"
+            target="_blank"
             >Sage Jenson's write-up</a
           >
           on the topic as well as
           <a
             href="https://www.youtube.com/watch?v=X-iSQQgOd1A"
             class="text-accent"
+            target="_blank"
           >
             Sebastian Lague's video</a
           >.
@@ -27,9 +29,12 @@
         100,000s of 'agents', each with a set of simple navigational rules, on
         the GPU to create complex collective behaviour.
       </p>
-      <q-img
-        src="portfolio/slime_gif_0.gif"
-        :class="$q.platform.is.mobile ? '' : 'aside'"
+      <video
+        :class="$q.platform.is.mobile ? 'center-mobile' : 'aside'"
+        autoplay
+        loop
+        src="portfolio/slime_vid_1.mp4"
+        muted
       />
       <p>
         Each agent (or particle) moves based on 3 sensor readings around it
@@ -68,9 +73,13 @@
       </div>
 
       <div class="text-h6">Dynamic Agent Speed</div>
-      <q-img
-        src="portfolio/slime_gif_1.gif"
-        :class="$q.platform.is.mobile ? '' : 'aside'"
+
+      <video
+        :class="$q.platform.is.mobile ? 'center-mobile' : 'aside'"
+        autoplay
+        loop
+        src="portfolio/slime_vid_2.mp4"
+        muted
       />
       <p>
         A feature which I wanted to focus on, which I had not seen much of
@@ -147,5 +156,8 @@ float sense(float x, float y, float r, float offset)
 .q-markdown--line-numbers-wrapper {
   background: white;
   color: $primary;
+}
+.center-mobile {
+  width: 100%;
 }
 </style>

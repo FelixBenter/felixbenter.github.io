@@ -3,9 +3,12 @@
     <div class="q-mt-none q-mb-lg text-primary">
       <div class="text-h4">Blender DCX Importer</div>
       <br />
-      <q-img
-        src="portfolio/dcximporter_gif_0.gif"
-        :class="$q.platform.is.mobile ? '' : 'aside'"
+      <video
+        :class="$q.platform.is.mobile ? 'center-mobile' : 'aside'"
+        autoplay
+        loop
+        src="portfolio/dcximporter_vid_0.mp4"
+        muted
       />
       <p>
         An add-on for the 3D modelling program Blender to import proprietary
@@ -22,7 +25,7 @@
         decompresses the proprietary .dcx files.
       </p>
       <q-img
-        src="portfolio/dcximporter_img_1.png"
+        src="portfolio/dcximporter_img_1.webp"
         :class="$q.platform.is.mobile ? '' : 'aside'"
       />
       <p>
@@ -126,5 +129,8 @@ transform_bone_and_siblings(0, Matrix())
 .q-markdown--line-numbers-wrapper {
   background: white;
   color: $primary;
+}
+.center-mobile {
+  width: 100%;
 }
 </style>

@@ -32,12 +32,12 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
-import PortfolioItem from "../components/PortfolioItem.vue";
-import WorkItem from "../components/WorkItem.vue";
+import { defineComponent, ref } from 'vue';
+import PortfolioItem from '../components/PortfolioItem.vue';
+import WorkItem from '../components/WorkItem.vue';
 
 export default defineComponent({
-  name: "PortfolioPage",
+  name: 'PortfolioPage',
   components: {
     PortfolioItem,
     WorkItem,
@@ -46,44 +46,43 @@ export default defineComponent({
     return {
       portfolioItems: [
         {
-          title: "Physarum WebGL Simulation",
-          subtitle:
-            "A small implementation of Physarum Polycephalum movement in WebGL",
+          title: 'Physarum WebGL Simulation',
+          subtitle: 'A small implementation of Physarum Polycephalum movement in WebGL',
           description: `
           Physarum Polycephalum is a single-celled organism which, within large networks, can together exhibit many complex and intelligent locomotive behaviours.
           The project involved creating webGL shaders to simulate 100,000s of 'agents', each with a set of simple navigational rules, on the GPU to create complex collective behaviour.
           `,
           slides: [
             {
-              type: "video",
-              res: "portfolio/slime_vid_0.mp4",
-              caption: "",
+              type: 'video',
+              res: 'portfolio/slime_vid_0.mp4',
+              caption: '',
             },
             {
-              type: "img",
-              res: "portfolio/slime_img_0.webp",
-              caption: "",
+              type: 'img',
+              res: 'portfolio/slime_img_0.webp',
+              caption: '',
             },
             {
-              type: "img",
-              res: "portfolio/slime_img_1.webp",
-              caption: "",
+              type: 'img',
+              res: 'portfolio/slime_img_1.webp',
+              caption: '',
             },
           ],
-          tags: ["JS", "WebGL"],
+          tags: ['JS', 'WebGL'],
           actions: [
             {
-              title: "Details",
+              title: 'Details',
               click: () => {
-                this.$router.push("/physarum");
+                this.$router.push('/physarum');
               },
             },
             {
-              title: "View source on Github",
+              title: 'View source on Github',
               click: () => {
                 window.open(
-                  "https://github.com/FelixBenter/felixbenter.github.io/tree/main/src/components/slime_sim",
-                  "_blank"
+                  'https://github.com/FelixBenter/felixbenter.github.io/tree/main/src/components/slime_sim',
+                  '_blank'
                 );
               },
             },
@@ -91,8 +90,8 @@ export default defineComponent({
           slide: 0,
         },
         {
-          title: "Blender DCX Importer",
-          subtitle: "A Blender plugin for importing Fromsoft DCX files",
+          title: 'Blender DCX Importer',
+          subtitle: 'A Blender plugin for importing Fromsoft DCX files',
           description: `
           An add-on for the 3D modelling program Blender to import proprietary model and texture files from FromSoftware video games.
           The tool unpacks the input files and loads mesh data, armature data and finds the appropriate texture data for that model.
@@ -100,26 +99,23 @@ export default defineComponent({
           `,
           slides: [
             {
-              type: "img",
-              res: "portfolio/dcximporter_img_0.webp",
-              caption: "",
+              type: 'img',
+              res: 'portfolio/dcximporter_img_0.webp',
+              caption: '',
             },
           ],
-          tags: ["Python"],
+          tags: ['Python'],
           actions: [
             {
-              title: "Details",
+              title: 'Details',
               click: () => {
-                this.$router.push("/dcximporter");
+                this.$router.push('/dcximporter');
               },
             },
             {
-              title: "View source on Github",
+              title: 'View source on Github',
               click: () => {
-                window.open(
-                  "https://github.com/FelixBenter/FromSoftware-Blender-Importer",
-                  "_blank"
-                );
+                window.open('https://github.com/FelixBenter/FromSoftware-Blender-Importer', '_blank');
               },
             },
           ],
@@ -128,15 +124,15 @@ export default defineComponent({
       ],
       workItems: [
         {
-          title: "Software Developer at Pairtree Intelligence",
-          period: "Feb 2021 - present",
+          title: 'Software Developer at Pairtree Intelligence',
+          period: 'Feb 2021 - present',
           points: [
-            "Developed and maintained data feed pipelines and backend structure using C# and PostgreSQL.",
-            "Led the development and transition to a new customer facing UI project involving Vue3 (Quasar) & Axios.",
-            "Developed and maintained internal & external APIs in a controller-service-repository pattern using .NET.",
-            "Built advanced geospatial analysis and visualisation features using postGIS, GDAL and Leaflet.",
-            "Created and configured build pipelines using Jenkins.",
-            "Collaborated with team members and worked closely with clients to refine solutions based on evolving requirements. Lead the development of multiple large projects with clients and developed large sections of e2e solutions, involve the Department of Primary Industries and Syngenta Australia.",
+            'Developed and maintained data feed pipelines and backend structure using C# and PostgreSQL.',
+            'Led the development and transition to a new customer facing UI project involving Vue3 (Quasar) & Axios.',
+            'Developed and maintained internal & external APIs in a controller-service-repository pattern using .NET.',
+            'Built advanced geospatial analysis and visualisation features using postGIS, GDAL and Leaflet.',
+            'Created and configured build pipelines using Jenkins.',
+            'Collaborated with team members and worked closely with clients to refine solutions based on evolving requirements. Lead the development of multiple large projects with clients and developed large sections of e2e solutions, involve the Department of Primary Industries and Syngenta Australia.',
           ],
         },
       ],

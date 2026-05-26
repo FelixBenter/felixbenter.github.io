@@ -11,50 +11,33 @@
         muted
       />
       <p>
-        An add-on for the 3D modelling program Blender to import proprietary
-        model and texture files from FromSoftware video games. The tool unpacks
-        the input files and loads mesh data, armature data and finds the
-        appropriate texture data for that model. It then loads these items into
-        Blender and applies the armature and texture data into a rigged and
-        textured blender model.
+        An add-on for the 3D modelling program Blender to import proprietary model and texture files from FromSoftware
+        video games. The tool unpacks the input files and loads mesh data, armature data and finds the appropriate
+        texture data for that model. It then loads these items into Blender and applies the armature and texture data
+        into a rigged and textured blender model.
       </p>
 
       <p>
-        Blender supports an extensive python API for automating any user
-        function in the program. The add-on, using several other tools,
-        decompresses the proprietary .dcx files.
+        Blender supports an extensive python API for automating any user function in the program. The add-on, using
+        several other tools, decompresses the proprietary .dcx files.
       </p>
-      <q-img
-        src="portfolio/dcximporter_img_1.webp"
-        :class="$q.platform.is.mobile ? '' : 'aside'"
-      />
+      <q-img src="portfolio/dcximporter_img_1.webp" :class="$q.platform.is.mobile ? '' : 'aside'" />
       <p>
-        From this .dcx file we get a .flver (model, UV and rigging data) and a
-        .tpf file (texture data). The .flver model data is read into memory and
-        the model is created in blender from the vertex buffer and armature
-        data. The .tpf is unpacked and the textures within are converted from
-        .dds to .png using the DirectXTex texture converter.
+        From this .dcx file we get a .flver (model, UV and rigging data) and a .tpf file (texture data). The .flver
+        model data is read into memory and the model is created in blender from the vertex buffer and armature data. The
+        .tpf is unpacked and the textures within are converted from .dds to .png using the DirectXTex texture converter.
       </p>
 
-      <p>
-        Finally, Blender materials are created from these textures and applied
-        to the model.
-      </p>
+      <p>Finally, Blender materials are created from these textures and applied to the model.</p>
 
       <q-markdown
-        style="
-          line-height: 1.5;
-          overflow: auto;
-          overflow-x: auto;
-          min-width: 0px;
-          box-sizing: border-box;
-        "
+        style="line-height: 1.5; overflow: auto; overflow-x: auto; min-width: 0px; box-sizing: border-box"
         :src="markdown"
         class="focused"
       />
       <div class="text-caption">
-        Excerpt from the armature creation code: Creates, positions and links
-        bones for the model's armature from the flver data.
+        Excerpt from the armature creation code: Creates, positions and links bones for the model's armature from the
+        flver data.
       </div>
     </div>
   </q-page>
@@ -62,10 +45,10 @@
 
 <style src="@quasar/quasar-ui-qmarkdown/dist/index.css"></style>
 <script>
-import { defineComponent, ref } from "vue";
-import { QMarkdown } from "@quasar/quasar-ui-qmarkdown";
+import { defineComponent, ref } from 'vue';
+import { QMarkdown } from '@quasar/quasar-ui-qmarkdown';
 export default defineComponent({
-  name: "PhysarumPage",
+  name: 'PhysarumPage',
   components: {
     QMarkdown,
   },

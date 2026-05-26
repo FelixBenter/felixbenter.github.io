@@ -1,9 +1,6 @@
 <template>
   <q-card class="bg-white" :id="title" square flat bordered>
-    <q-card-section
-      :horizontal="$q.screen.width > $q.screen.height"
-      class="full-height q-pa-none"
-    >
+    <q-card-section :horizontal="$q.screen.width > $q.screen.height" class="full-height q-pa-none">
       <q-carousel
         v-model="slide"
         swipeable
@@ -17,13 +14,7 @@
         style="min-height: 300px"
       >
         <template v-slot:navigation-icon="{ active, onClick }">
-          <q-btn
-            square
-            outline
-            :color="active ? 'white' : 'primary'"
-            @click="onClick"
-            icon=""
-          />
+          <q-btn square outline :color="active ? 'white' : 'primary'" @click="onClick" icon="" />
         </template>
         <q-carousel-slide
           class="column no-wrap q-pa-none"
@@ -97,13 +88,13 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 export default defineComponent({
-  name: "PortfolioItem",
+  name: 'PortfolioItem',
 
   components: {},
   methods: {},
-  props: ["title", "subtitle", "description", "slides", "tags", "actions"],
+  props: ['title', 'subtitle', 'description', 'slides', 'tags', 'actions'],
   data() {
     return {
       slide: 0,

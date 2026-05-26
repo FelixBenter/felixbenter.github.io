@@ -38,7 +38,7 @@
             <q-card-actions class="q-px-none row justify-center q-gutter-y-sm">
               <q-btn
                 v-for="link in links"
-                :key="link.title"
+                :key="link"
                 class="row"
                 :class="$q.platform.is.mobile ? 'full-width' : ''"
                 square
@@ -56,40 +56,49 @@
   </q-layout>
 </template>
 
-<script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-
-const windowTop = ref<Number | undefined>(0.0);
-const links = [
-  {
-    title: 'Email',
-    href: 'mailto:felixbenter1@gmail.com',
+<script>
+import { defineComponent, ref } from 'vue';
+export default defineComponent({
+  name: 'ResumePage',
+  components: {},
+  data() {
+    return {
+      windowTop: 0.0,
+      links: [
+        {
+          title: 'Email',
+          href: 'mailto:felixbenter1@gmail.com',
+        },
+        {
+          title: 'LinkedIn',
+          href: 'https://www.linkedin.com/in/felix-benter-8a7157191/',
+        },
+        {
+          title: 'Github',
+          href: 'https://github.com/FelixBenter',
+        },
+        {
+          title: 'resume',
+          href: 'Resume_2026.pdf',
+        },
+      ],
+    };
   },
-  {
-    title: 'LinkedIn',
-    href: 'https://www.linkedin.com/in/felix-benter-8a7157191/',
+  mounted() {
+    window.addEventListener('scroll', this.onScroll);
   },
-  {
-    title: 'Github',
-    href: 'https://github.com/FelixBenter',
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
   },
-  {
-    title: 'resume',
-    href: 'Resume_2026.pdf',
+  methods: {
+    onScroll(e) {
+      this.windowTop = window.top.scrollY;
+    },
   },
-];
-
-onMounted(() => {
-  window.addEventListener('scroll', onScroll);
+  watch: {
+    windowTop() {},
+  },
 });
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', onScroll);
-});
-
-function onScroll() {
-  windowTop.value = window.top?.scrollY;
-}
 </script>
 
 <style>

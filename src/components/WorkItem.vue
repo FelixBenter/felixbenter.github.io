@@ -15,13 +15,13 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 export default defineComponent({
-  name: "WorkItem",
+  name: 'WorkItem',
 
   components: {},
   methods: {},
-  props: ["title", "period", "points"],
+  props: ['title', 'period', 'points'],
   data() {
     return {};
   },

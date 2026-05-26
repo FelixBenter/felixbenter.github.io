@@ -101,7 +101,7 @@ export default defineComponent({
         },
         {
           title: "resume",
-          href: "Resume_2024.pdf",
+          href: "Resume_2026.pdf",
         },
       ],
     };

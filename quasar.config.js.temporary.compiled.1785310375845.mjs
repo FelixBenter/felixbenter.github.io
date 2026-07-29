@@ -14,25 +14,19 @@
  **/
 
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
-var __commonJS = (cb, mod) => function __require2() {
+var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 
 // quasar.config.js
+import { defineConfig } from "@quasar/app-vite/wrappers";
 var require_quasar_config = __commonJS({
   "quasar.config.js"(exports, module) {
-    var { configure } = __require("quasar/wrappers");
-    module.exports = configure(function() {
+    module.exports = defineConfig(function() {
       return {
         eslint: {
           fix: true,
-          // include = [],
+          include: ["src/*"],
           // exclude = [],
           // rawOptions = {},
           warnings: true,

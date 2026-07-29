@@ -76,19 +76,10 @@
   </q-page>
 </template>
 
-<style src="@quasar/quasar-ui-qmarkdown/dist/index.css"></style>
-<script>
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
 import { QMarkdown } from '@quasar/quasar-ui-qmarkdown';
-export default defineComponent({
-  name: 'PhysarumPage',
-  components: {
-    QMarkdown,
-  },
-  data() {
-    return {
-      split: 60,
-      markdown: `\`\`\`
+
+const markdown = `\`\`\`
 float sense(float x, float y, float r, float offset)
 {
     float sensorAngle = r + offset;
@@ -106,11 +97,9 @@ float sense(float x, float y, float r, float offset)
     }
     return sum / maxPossibleReading;
 }
-\`\`\``,
-    };
-  },
-});
+\`\`\``;
 </script>
+<style src="@quasar/quasar-ui-qmarkdown/dist/index.css"></style>
 
 <style lang="scss">
 .aside {

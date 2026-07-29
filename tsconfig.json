@@ -1,0 +1,33 @@
+{
+  "extends": "./.quasar/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "src/*": ["./src/*"],
+      "app/*": ["./*"],
+      "components/*": ["./src/components/*"],
+      "layouts/*": ["./src/layouts/*"],
+      "pages/*": ["./src/pages/*"],
+      "assets/*": ["./src/assets/*"],
+      "boot/*": ["./src/boot/*"],
+      "stores/*": ["./src/stores/*"],
+      "vue$": ["./node_modules/vue/dist/vue.runtime.esm-bundler.js"],
+      "#q-app": ["./node_modules/@quasar/app-vite/types/index.d.ts"],
+      "#q-app/wrappers": ["./node_modules/@quasar/app-vite/types/app-wrappers.d.ts"]
+    },
+    "allowJs": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "esnext",
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "module": "preserve",
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": false,
+    "types": ["vite/client"],
+    "strictNullChecks": true,
+    "strictPropertyInitialization": false
+  },
+  "exclude": ["dist", ".quasar", "node_modules", "public", "src-bex", "src-pwa"]
+}

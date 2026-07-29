@@ -14,16 +14,21 @@
   </q-item>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
-export default defineComponent({
-  name: 'WorkItem',
+<script setup lang="ts">
+import { PropType } from 'vue';
 
-  components: {},
-  methods: {},
-  props: ['title', 'period', 'points'],
-  data() {
-    return {};
+const props = defineProps({
+  title: {
+    required: true,
+    type: String,
+  },
+  period: {
+    required: true,
+    type: String,
+  },
+  points: {
+    required: true,
+    type: Array as PropType<string[]>,
   },
 });
 </script>

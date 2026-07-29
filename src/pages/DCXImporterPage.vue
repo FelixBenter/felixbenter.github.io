@@ -43,19 +43,9 @@
   </q-page>
 </template>
 
-<style src="@quasar/quasar-ui-qmarkdown/dist/index.css"></style>
-<script>
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
 import { QMarkdown } from '@quasar/quasar-ui-qmarkdown';
-export default defineComponent({
-  name: 'PhysarumPage',
-  components: {
-    QMarkdown,
-  },
-  data() {
-    return {
-      split: 60,
-      markdown: `\`\`\`
+const markdown = `\`\`\`
 def transform_bone_and_siblings(bone_index, parent_matrix):
   while bone_index != -1:
       flver_bone = flver_data.bones[bone_index]
@@ -84,11 +74,9 @@ def transform_bone_and_siblings(bone_index, parent_matrix):
       bone_index = flver_bone.next_sibling_index
 
 transform_bone_and_siblings(0, Matrix())
-\`\`\``,
-    };
-  },
-});
+\`\`\``;
 </script>
+<style src="@quasar/quasar-ui-qmarkdown/dist/index.css"></style>
 
 <style lang="scss">
 .aside {

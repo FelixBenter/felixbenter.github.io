@@ -1,5 +1,5 @@
 <template>
-  <canvas class="bg-black" id="vis" ref="visCanvas"></canvas>
+  <canvas id="vis" ref="visCanvas" class="bg-black"></canvas>
   <q-card class="overlay" square flat bordered style="width: 250px">
     <q-card-actions>
       <q-select v-model="presetSelection" :options="presets" label="Initial Condition" class="full-width" />
@@ -22,28 +22,9 @@
 <script>
 import { defineComponent } from 'vue';
 import * as vis from './SlimeSim';
-import { createNoise2D } from 'simplex-noise';
 export default defineComponent({
   name: 'SlimeSim',
   components: {},
-  watch: {
-    presetSelection(newPreset) {
-      try {
-        vis.shutdown();
-      } catch {}
-      var canvas = this.$refs.visCanvas;
-      canvas.width = Math.round(window.innerWidth);
-      canvas.height = Math.round(window.innerHeight);
-      let config = {
-        ...newPreset,
-        ...this.params,
-      };
-      vis.init(canvas, config);
-    },
-  },
-  mounted() {
-    this.presetSelection = this.presets[1];
-  },
   data() {
     const NUM_AGENTS = 2 ** (2 * 8);
     return {
@@ -148,6 +129,24 @@ export default defineComponent({
         },
       },
     };
+  },
+  watch: {
+    presetSelection(newPreset) {
+      try {
+        vis.shutdown();
+      } catch {}
+      var canvas = this.$refs.visCanvas;
+      canvas.width = Math.round(window.innerWidth);
+      canvas.height = Math.round(window.innerHeight);
+      let config = {
+        ...newPreset,
+        ...this.params,
+      };
+      vis.init(canvas, config);
+    },
+  },
+  mounted() {
+    this.presetSelection = this.presets[1];
   },
 });
 </script>

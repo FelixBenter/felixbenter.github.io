@@ -1,0 +1,1 @@
+import{J as e}from"./index-Bm-AxUdT.js";function t(){return e(`_q_`)}export{t};

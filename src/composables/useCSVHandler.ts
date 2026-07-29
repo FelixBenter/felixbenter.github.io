@@ -30,8 +30,13 @@ export function useCSVHandler() {
         const response = await fetch(path);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-        // Convert Response object to text string for Papa.parse
-        const csvString = await response.text();
+        const gzipStream = response.body;
+
+        const decompressionStream = new DecompressionStream('gzip');
+        const decompressedStream = gzipStream.pipeThrough(decompressionStream);
+
+        const textResponse = new Response(decompressedStream);
+        const csvString = await textResponse.text();
 
         Papa.parse(csvString, {
           header: true,

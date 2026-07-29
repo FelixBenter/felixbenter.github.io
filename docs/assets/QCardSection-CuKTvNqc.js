@@ -1,1 +1,0 @@
-import{D as e,R as t,q as n}from"./index-Dc_FCF8J.js";import{y as r}from"./use-align-CH5913lh.js";var i=e({name:`QCardSection`,props:{tag:{type:String,default:`div`},horizontal:Boolean},setup(e,{slots:i}){let a=t(()=>`q-card__section q-card__section--${e.horizontal===!0?`horiz row no-wrap`:`vert`}`);return()=>n(e.tag,{class:a.value},r(i.default))}});export{i as t};

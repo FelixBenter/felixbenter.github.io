@@ -10,6 +10,7 @@
     "clean": "quasar clean",
     "dev": "quasar dev",
     "build": "quasar build",
+    "serve": "quasar serve",
     "lint": "eslint --ext .js,.vue ./ --fix",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0"

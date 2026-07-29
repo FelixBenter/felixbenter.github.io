@@ -3,7 +3,7 @@
     <q-table
       v-model:pagination="pagination"
       :rows="filteredRows"
-      :cols="cols"
+      :columns="cols"
       virtual-scroll
       :rows-per-page-options="[0]"
       :loading="isLoading"
@@ -52,8 +52,8 @@ const pagination = ref({
 });
 
 const cols = [
-  { name: 'num', label: 'Number', field: 'num' },
-  { name: 'solution', label: 'Solution', field: 'solution', align: 'right' },
+  { name: 'num', label: 'Number', field: 'num', align: 'center' },
+  { name: 'solution', label: 'Solution', field: 'solution', align: 'center' },
 ] as Array<QTableColumn>;
 
 onMounted(() => {

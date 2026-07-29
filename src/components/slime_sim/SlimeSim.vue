@@ -1,18 +1,9 @@
 <template>
-  <canvas class="bg-black" id="vis" ref="visCanvas"></canvas>
+  <canvas id="vis" ref="visCanvas" class="bg-black"></canvas>
   <q-card class="overlay" square flat bordered style="width: 250px">
     <q-card-actions>
-      <q-select
-        v-model="presetSelection"
-        :options="presets"
-        label="Initial Condition"
-        class="full-width"
-      />
-      <div
-        v-for="param in Object.keys(params)"
-        :key="param"
-        style="width: 100%"
-      >
+      <q-select v-model="presetSelection" :options="presets" label="Initial Condition" class="full-width" />
+      <div v-for="param in Object.keys(params)" :key="param" style="width: 100%">
         {{ params[param].label }}: {{ params[param].value }}
         <q-slider
           v-model="params[param].value"
@@ -29,37 +20,18 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
-import * as vis from "./SlimeSim";
-import { createNoise2D } from "simplex-noise";
+import { defineComponent } from 'vue';
+import * as vis from './SlimeSim';
 export default defineComponent({
-  name: "SlimeSim",
+  name: 'SlimeSim',
   components: {},
-  watch: {
-    presetSelection(newPreset) {
-      try {
-        vis.shutdown();
-      } catch {}
-      var canvas = this.$refs.visCanvas;
-      canvas.width = Math.round(window.innerWidth);
-      canvas.height = Math.round(window.innerHeight);
-      let config = {
-        ...newPreset,
-        ...this.params,
-      };
-      vis.init(canvas, config);
-    },
-  },
-  mounted() {
-    this.presetSelection = this.presets[1];
-  },
   data() {
     const NUM_AGENTS = 2 ** (2 * 8);
     return {
       presetSelection: null,
       presets: [
         {
-          label: "Circle Moving Towards Centre",
+          label: 'Circle Moving Towards Centre',
           createAgents: function () {
             let agents = [];
             let agentColorData = [];
@@ -91,7 +63,7 @@ export default defineComponent({
           randomWeight: 0.1,
         },
         {
-          label: "Orbit",
+          label: 'Orbit',
           createAgents: function () {
             let agents = [];
             let agentColorData = [];
@@ -129,34 +101,52 @@ export default defineComponent({
           value: 0.1,
           min: 0.1,
           max: 1.0,
-          label: "Turn Speed",
+          label: 'Turn Speed',
         },
         maxSpeed: {
           value: 2.0,
           min: 0.0,
           max: 5.0,
-          label: "Max Speed",
+          label: 'Max Speed',
         },
         sensorOffsetDistance: {
           value: 1.0,
           min: 10.0,
           max: 100.0,
-          label: "Sensor Range",
+          label: 'Sensor Range',
         },
         sensorAngle: {
           value: 0.8,
           min: 0.1,
           max: 0.6,
-          label: "Sensor Angle",
+          label: 'Sensor Angle',
         },
         acceleration: {
           value: 5.0,
           min: 1.0,
           max: 10.0,
-          label: "Acceleration",
+          label: 'Acceleration',
         },
       },
     };
+  },
+  watch: {
+    presetSelection(newPreset) {
+      try {
+        vis.shutdown();
+      } catch {}
+      var canvas = this.$refs.visCanvas;
+      canvas.width = Math.round(window.innerWidth);
+      canvas.height = Math.round(window.innerHeight);
+      let config = {
+        ...newPreset,
+        ...this.params,
+      };
+      vis.init(canvas, config);
+    },
+  },
+  mounted() {
+    this.presetSelection = this.presets[1];
   },
 });
 </script>

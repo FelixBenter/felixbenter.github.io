@@ -1,0 +1,1 @@
+import{E as e,G as t,I as n}from"./index-C7243J0p.js";import{y as r}from"./use-align-DKJDV1H_.js";var i=e({name:`QCardSection`,props:{tag:{type:String,default:`div`},horizontal:Boolean},setup(e,{slots:i}){let a=n(()=>`q-card__section q-card__section--${e.horizontal===!0?`horiz row no-wrap`:`vert`}`);return()=>t(e.tag,{class:a.value},r(i.default))}});export{i as t};

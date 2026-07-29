@@ -1,52 +1,30 @@
 <template>
   <q-layout view="hHh lpR fff" class="q-px-lg">
-    <q-header
-      :bordered="windowTop != 0.0"
-      class="bg-white text-primary center-column"
-    >
+    <q-header :bordered="windowTop != 0.0" class="bg-white text-primary center-column">
       <q-toolbar class="q-pa-none">
         <q-toolbar-title class="text-weight-medium">
-          <router-link v-if="$route.path != '/'" to="/" class="text-primary"
-            >Felix Benter</router-link
-          >
+          <router-link v-if="$route.path != '/'" to="/" class="text-primary">Felix Benter</router-link>
           <div v-if="$route.path == '/'">Felix Benter</div>
         </q-toolbar-title>
         <q-item>
           <q-item-section class="text-caption text-weight-light">
             <q-item-label>
-              <a href="mailto:felixbenter1@gmail.com" class="text-primary"
-                >felixbenter1@gmail.com</a
-              ></q-item-label
+              <a href="mailto:felixbenter1@gmail.com" class="text-primary">felixbenter1@gmail.com</a></q-item-label
             >
             <q-item-label>
-              <a
-                href="https://www.linkedin.com/in/felix-benter-8a7157191/"
-                class="text-primary"
-                target="_blank"
+              <a href="https://www.linkedin.com/in/felix-benter-8a7157191/" class="text-primary" target="_blank"
                 >LinkedIn</a
               >
               /
-              <a
-                href="https://github.com/FelixBenter"
-                class="text-primary"
-                target="_blank"
-                >Github</a
-              ></q-item-label
+              <a href="https://github.com/FelixBenter" class="text-primary" target="_blank">Github</a></q-item-label
             >
           </q-item-section>
         </q-item>
       </q-toolbar>
     </q-header>
 
-    <q-page-container
-      class="row no-wrap q-mx-lg text-primary text-body1 text-weight-light center-column"
-    >
-      <transition
-        enter-active-class="animated fadeIn"
-        leave-active-class="animated fadeOut"
-        appear
-        :duration="300"
-      >
+    <q-page-container class="row no-wrap q-mx-lg text-primary text-body1 text-weight-light center-column">
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut" appear :duration="300">
         <RouterView />
       </transition>
     </q-page-container>
@@ -60,7 +38,7 @@
             <q-card-actions class="q-px-none row justify-center q-gutter-y-sm">
               <q-btn
                 v-for="link in links"
-                :key="link"
+                :key="link.title"
                 class="row"
                 :class="$q.platform.is.mobile ? 'full-width' : ''"
                 square
@@ -78,49 +56,40 @@
   </q-layout>
 </template>
 
-<script>
-import { defineComponent, ref } from "vue";
-export default defineComponent({
-  name: "ResumePage",
-  components: {},
-  data() {
-    return {
-      windowTop: 0.0,
-      links: [
-        {
-          title: "Email",
-          href: "mailto:felixbenter1@gmail.com",
-        },
-        {
-          title: "LinkedIn",
-          href: "https://www.linkedin.com/in/felix-benter-8a7157191/",
-        },
-        {
-          title: "Github",
-          href: "https://github.com/FelixBenter",
-        },
-        {
-          title: "resume",
-          href: "Resume_2024.pdf",
-        },
-      ],
-    };
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+
+const windowTop = ref<Number | undefined>(0.0);
+const links = [
+  {
+    title: 'Email',
+    href: 'mailto:felixbenter1@gmail.com',
   },
-  mounted() {
-    window.addEventListener("scroll", this.onScroll);
+  {
+    title: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/felix-benter-8a7157191/',
   },
-  beforeUnmount() {
-    window.removeEventListener("scroll", this.onScroll);
+  {
+    title: 'Github',
+    href: 'https://github.com/FelixBenter',
   },
-  methods: {
-    onScroll(e) {
-      this.windowTop = window.top.scrollY;
-    },
+  {
+    title: 'resume',
+    href: 'Resume_2026.pdf',
   },
-  watch: {
-    windowTop() {},
-  },
+];
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll);
 });
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll);
+});
+
+function onScroll() {
+  windowTop.value = window.top?.scrollY;
+}
 </script>
 
 <style>

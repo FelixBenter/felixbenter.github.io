@@ -18,6 +18,16 @@ const routes = [
         path: '/dcximporter',
         component: () => import('pages/DCXImporterPage.vue'),
       },
+      {
+        name: 'Train Solver',
+        path: '/trainsolver',
+        component: () => import('pages/TrainSolverPage.vue'),
+      },
+      {
+        name: 'CSV',
+        path: '/csv',
+        component: () => import('pages/CSVPage.vue'),
+      },
     ],
   },
   {
